@@ -8,8 +8,9 @@ import org.springframework.stereotype.Repository;
 import com.devteria.identityservice.entity.User;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, String> {
+public interface UserRepository extends JpaRepository<User, Integer> {
     boolean existsByUsername(String username);
 
     Optional<User> findByUsername(String username);
 }
+

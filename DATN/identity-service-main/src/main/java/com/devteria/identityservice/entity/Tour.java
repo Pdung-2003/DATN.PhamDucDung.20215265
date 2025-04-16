@@ -1,8 +1,10 @@
 package com.devteria.identityservice.entity;
+
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -10,23 +12,19 @@ import lombok.AllArgsConstructor;
 public class Tour {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer tourId;
+    private Long tourId;
 
-    @Column(nullable = false)
     private String tourName;
-
     private String description;
+    private BigDecimal price;
 
-    @Column(nullable = false)
-    private Double price;
-
+    // Liên kết đến User (quản lý tour)
     @ManyToOne
-    @JoinColumn(name = "manager_id", nullable = false)
-    private TourManager manager;
+    @JoinColumn(name = "manager_id", referencedColumnName = "id")
+    private User manager;  // Người quản lý tour (tham chiếu đến bảng users)
 
-    @Column(nullable = false, updatable = false)
-    private java.sql.Timestamp createdAt;
+    private String companyName;  // Tên công ty quản lý tour (Vietravel, Tourexpress, v.v.)
 
-    @Column(nullable = false)
-    private java.sql.Timestamp updatedAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime updatedAt = LocalDateTime.now();
 }
