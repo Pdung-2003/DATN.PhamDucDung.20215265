@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 import com.devteria.identityservice.dto.request.UserCreationRequest;
 import com.devteria.identityservice.dto.request.UserUpdateRequest;
 import com.devteria.identityservice.dto.response.UserResponse;
-import com.devteria.identityservice.entity.Admin;
-import com.devteria.identityservice.entity.Customer;
 import com.devteria.identityservice.entity.Role;
 import com.devteria.identityservice.entity.User;
 import com.devteria.identityservice.exception.AppException;
