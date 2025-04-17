@@ -1,7 +1,6 @@
 package com.devteria.identityservice.dto.request;
 
 import java.time.LocalDate;
-
 import jakarta.validation.constraints.Size;
 
 import com.devteria.identityservice.validator.DobConstraint;
@@ -21,12 +20,10 @@ public class UserCreationRequest {
     @Size(min = 6, message = "INVALID_PASSWORD")
     String password;
 
-    String firstName;
-    String lastName;
-    String fullName;
+    String fullName;  // Tên đầy đủ
     String phoneNumber;
     String address;
-    String adminLevel;  // Optional, only needed for admins
+
     @DobConstraint(min = 10, message = "INVALID_DOB")
-    LocalDate dob;
+    LocalDate dob;  // Ngày sinh
 }

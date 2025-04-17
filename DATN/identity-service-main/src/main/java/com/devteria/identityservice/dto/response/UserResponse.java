@@ -5,12 +5,11 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class UserResponse {
-    private String id;
+    private Long id;
     private String username;
     private String email;
-    private String roleName;
-    private String phone;
+    private String fullName;
     private String address;
+    private String phoneNumber;
 }

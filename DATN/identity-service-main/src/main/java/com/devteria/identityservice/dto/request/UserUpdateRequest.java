@@ -1,12 +1,9 @@
 package com.devteria.identityservice.dto.request;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Set;
-
-import com.devteria.identityservice.validator.DobConstraint;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.util.Set;
 
 @Data
 @Builder
@@ -14,11 +11,9 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserUpdateRequest {
-    String password;
-    String firstName;
-    String lastName;
-    String fullName;
+    String password;  // Mật khẩu mới
+    String fullName;  // Tên đầy đủ
     String phoneNumber;
     String address;
-    Set<String> roles;
+    Set<String> roles;  // Set các vai trò của người dùng
 }
