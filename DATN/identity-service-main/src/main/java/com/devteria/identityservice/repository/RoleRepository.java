@@ -5,5 +5,11 @@ import org.springframework.stereotype.Repository;
 
 import com.devteria.identityservice.entity.Role;
 
+import java.util.Collection;
+import java.util.Set;
+
 @Repository
-public interface RoleRepository extends JpaRepository<Role, String> {}
+public interface RoleRepository extends JpaRepository<Role, String> {
+    Collection<? extends Role> findAllById(Set<Long> roles);
+
+}

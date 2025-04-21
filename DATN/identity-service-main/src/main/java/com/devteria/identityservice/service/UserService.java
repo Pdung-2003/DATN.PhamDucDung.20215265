@@ -4,6 +4,8 @@ import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.List;
 
+import com.devteria.identityservice.entity.UserRolePermission;
+import com.devteria.identityservice.repository.UserRolePermissionRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,48 +31,48 @@ import lombok.extern.slf4j.Slf4j;
 public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final UserRolePermissionRepository userRolePermissionRepository; // Add this
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+
     // Method to create a new user
     public UserResponse createUser(UserCreationRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
 
+        // Create user entity
         User user = userMapper.toUser(request);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPasswordDigest(passwordEncoder.encode(request.getPassword()));
 
-        // Check and set Customer or Admin info
-        if (request.getFullName() != null) {
-            Customer customer = new Customer();
-            customer.setUser(user);
-            customer.setFullName(request.getFullName());
-            customer.setPhoneNumber(request.getPhoneNumber());
-            customer.setAddress(request.getAddress());
-            customer.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-            customer.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
-            user.setCustomer(customer); // Set Customer for User
+        // Save the user first
+        user = userRepository.save(user);
+
+        HashSet<Role> roles = new HashSet<>(roleRepository.findAllById(request.getRoles()));
+
+        // Instead of setting roles directly in User, use UserRolePermission
+        for (Role role : roles) {
+            UserRolePermission userRolePermission = new UserRolePermission();
+            userRolePermission.setUser(user);
+            userRolePermission.setRole(role);
+            // Set permissions as required (if any)
+            userRolePermissionRepository.save(userRolePermission);
         }
 
-        if (request.getAdminLevel() != null) {
-            Admin admin = new Admin();
-            admin.setUser(user);
-            admin.setAdminLevel(request.getAdminLevel());
-            admin.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-            admin.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
-            user.setAdmin(admin); // Set Admin for User
-        }
-
-        try {
-            user = userRepository.save(user);
-        } catch (DataIntegrityViolationException exception) {
-            throw new AppException(ErrorCode.USER_EXISTED);
+        // Create user-role-permission records
+        for (Role role : roles) {
+            UserRolePermission userRolePermission = new UserRolePermission();
+            userRolePermission.setUser(user);
+            userRolePermission.setRole(role);
+            // You can also map permissions for this user and role
+            // Set permissions as required
+            userRolePermissionRepository.save(userRolePermission);
         }
 
         return userMapper.toUserResponse(user);
     }
 
-    // Method to fetch logged-in user's information
+    // Get current user information
     public UserResponse getMyInfo() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username)
@@ -79,36 +81,47 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
-    // Update user information
-    public UserResponse updateUser(String userId, UserUpdateRequest request) {
+    // Method to update user information
+    public UserResponse updateUser(Long userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         userMapper.updateUser(user, request);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPasswordDigest(passwordEncoder.encode(request.getPassword()));
 
+        // Update roles using UserRolePermission
         HashSet<Role> roles = new HashSet<>(roleRepository.findAllById(request.getRoles()));
-        user.setRoles(roles);
+        // You can clear existing roles and add new ones
+        userRolePermissionRepository.deleteByUser(user);
+
+        for (Role role : roles) {
+            UserRolePermission userRolePermission = new UserRolePermission();
+            userRolePermission.setUser(user);
+            userRolePermission.setRole(role);
+            // Set permissions as required
+            userRolePermissionRepository.save(userRolePermission);
+        }
 
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
-    // Delete user (admin only)
-    public void deleteUser(String userId) {
+    // Method to delete user
+    public void deleteUser(Long userId) {
         userRepository.deleteById(userId);
     }
-
-    // Get all users (admin only)
+    // Get list of all users
     public List<UserResponse> getUsers() {
         return userRepository.findAll().stream()
                 .map(userMapper::toUserResponse)
                 .toList();
     }
 
-    // Get specific user (admin only)
-    public UserResponse getUser(String id) {
+    // Get a specific user by ID
+    public UserResponse getUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         return userMapper.toUserResponse(user);
     }
 }
+
+
