@@ -6,6 +6,9 @@ import org.mapstruct.Mapping;
 import com.devteria.identityservice.dto.request.UserRolePermissionRequest;
 import com.devteria.identityservice.dto.response.UserRolePermissionResponse;
 import com.devteria.identityservice.entity.UserRolePermission;
+import com.devteria.identityservice.entity.User;
+import com.devteria.identityservice.entity.Role;
+import com.devteria.identityservice.entity.Permission;
 
 @Mapper(componentModel = "spring")
 public interface UserRolePermissionMapper {

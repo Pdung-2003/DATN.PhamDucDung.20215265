@@ -2,7 +2,12 @@ package com.devteria.identityservice.service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import com.devteria.identityservice.entity.UserRolePermission;
+import com.devteria.identityservice.exception.AppException;
+import com.devteria.identityservice.exception.ErrorCode;
+import com.devteria.identityservice.repository.UserRolePermissionRepository;
 import org.springframework.stereotype.Service;
 
 import com.devteria.identityservice.dto.request.RoleRequest;
@@ -24,14 +29,31 @@ public class RoleService {
     RoleRepository roleRepository;
     PermissionRepository permissionRepository;
     RoleMapper roleMapper;
+    UserRolePermissionRepository userRolePermissionRepository;
 
     public RoleResponse create(RoleRequest request) {
+        // Tạo đối tượng Role từ request
         var role = roleMapper.toRole(request);
 
-        var permissions = permissionRepository.findAllById(request.getPermissions());
-        role.setPermissions(new HashSet<>(permissions));
-
+        // Lưu role vào database
         role = roleRepository.save(role);
+
+        // Tạo các bản ghi UserRolePermission cho role mới
+        HashSet<UserRolePermission> userRolePermissions = new HashSet<>();
+        for (Long permissionId : request.getPermissions()) {
+            var permission = permissionRepository.findById(permissionId)
+                    .orElseThrow(() -> new AppException(ErrorCode.PERMISSION_NOT_EXISTED));
+
+            UserRolePermission userRolePermission = new UserRolePermission();
+            userRolePermission.setRole(role);
+            userRolePermission.setPermission(permission);
+
+            userRolePermissions.add(userRolePermission);
+        }
+
+        // Lưu các bản ghi UserRolePermission
+        userRolePermissionRepository.saveAll(userRolePermissions);
+
         return roleMapper.toRoleResponse(role);
     }
 
@@ -39,7 +61,7 @@ public class RoleService {
         return roleRepository.findAll().stream().map(roleMapper::toRoleResponse).toList();
     }
 
-    public void delete(String role) {
-        roleRepository.deleteById(role);
+    public void delete(Long roleId) {
+        roleRepository.deleteById(roleId);
     }
 }

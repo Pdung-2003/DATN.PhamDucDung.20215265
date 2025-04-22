@@ -1,7 +1,5 @@
 package com.devteria.identityservice.dto.request;
 
-import java.util.Set;
-
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -10,8 +8,8 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RoleRequest {
-    String name;
-    String description;
-    Set<Long> permissions;
+public class UserRolePermissionRequest {
+    private Long userId;  // ID của người dùng
+    private Long roleId;  // ID của vai trò
+    private Long permissionId;  // ID của quyền
 }

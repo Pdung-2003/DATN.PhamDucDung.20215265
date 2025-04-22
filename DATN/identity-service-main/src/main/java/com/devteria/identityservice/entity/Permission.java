@@ -20,4 +20,8 @@ public class Permission {
     private String name;
     private String description;
 
+    // Liên kết tới UserRolePermission để lấy tất cả người dùng và vai trò có quyền này
+    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL)
+    private Set<UserRolePermission> userRolePermissions;
+
 }

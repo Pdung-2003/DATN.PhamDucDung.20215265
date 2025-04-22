@@ -1,6 +1,7 @@
 package com.devteria.identityservice.dto.request;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 import jakarta.validation.constraints.Size;
 
@@ -26,7 +27,7 @@ public class UserCreationRequest {
     String fullName;
     String phoneNumber;
     String address;
-    String adminLevel;  // Optional, only needed for admins
     @DobConstraint(min = 10, message = "INVALID_DOB")
     LocalDate dob;
+    Set<Long> roles;
 }
