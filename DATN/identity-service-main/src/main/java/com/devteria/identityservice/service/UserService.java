@@ -50,15 +50,6 @@ public class UserService {
 
         HashSet<Role> roles = new HashSet<>(roleRepository.findAllById(request.getRoles()));
 
-        // Instead of setting roles directly in User, use UserRolePermission
-        for (Role role : roles) {
-            UserRolePermission userRolePermission = new UserRolePermission();
-            userRolePermission.setUser(user);
-            userRolePermission.setRole(role);
-            // Set permissions as required (if any)
-            userRolePermissionRepository.save(userRolePermission);
-        }
-
         // Create user-role-permission records
         for (Role role : roles) {
             UserRolePermission userRolePermission = new UserRolePermission();

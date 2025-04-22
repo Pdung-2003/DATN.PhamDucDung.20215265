@@ -20,5 +20,5 @@ public class UserUpdateRequest {
     String fullName;
     String phoneNumber;
     String address;
-    Set<String> roles;
+    Set<Long> roles;
 }

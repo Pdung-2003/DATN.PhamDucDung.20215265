@@ -11,7 +11,8 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class RoleResponse {
+    Long id; // Đổi kiểu ID thành Long
     String name;
     String description;
-    Set<PermissionResponse> permissions;
+    Set<PermissionResponse> permissions; // Các permission được liên kết với role
 }
