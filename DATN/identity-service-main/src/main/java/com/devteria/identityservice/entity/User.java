@@ -24,8 +24,9 @@ public class User {
     private String email;
 
     private String address;
-
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+    @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
     @Column(nullable = true)  // chỉ có Customer và Admin mới có
     private String fullName;
