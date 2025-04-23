@@ -55,8 +55,6 @@ public class UserService {
             UserRolePermission userRolePermission = new UserRolePermission();
             userRolePermission.setUser(user);
             userRolePermission.setRole(role);
-            // You can also map permissions for this user and role
-            // Set permissions as required
             userRolePermissionRepository.save(userRolePermission);
         }
 
@@ -89,7 +87,6 @@ public class UserService {
             UserRolePermission userRolePermission = new UserRolePermission();
             userRolePermission.setUser(user);
             userRolePermission.setRole(role);
-            // Set permissions as required
             userRolePermissionRepository.save(userRolePermission);
         }
 

@@ -2,6 +2,8 @@ package com.devteria.identityservice.configuration;
 
 import java.util.HashSet;
 
+import com.devteria.identityservice.entity.UserRolePermission;
+import com.devteria.identityservice.repository.UserRolePermissionRepository;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ApplicationInitConfig {
 
     PasswordEncoder passwordEncoder;
+    UserRolePermissionRepository userRolePermissionRepository;
 
     @NonFinal
     static final String ADMIN_USER_NAME = "admin";
@@ -58,12 +61,20 @@ public class ApplicationInitConfig {
 
                 User user = User.builder()
                         .username(ADMIN_USER_NAME)
-                        .password(passwordEncoder.encode(ADMIN_PASSWORD))
-                        .roles(roles)
+                        .passwordDigest(passwordEncoder.encode(ADMIN_PASSWORD))
                         .build();
 
-                userRepository.save(user);
-                log.warn("admin user has been created with default password: admin, please change it");
+                user = userRepository.save(user);
+                log.warn("Admin user has been created with default password: admin, please change it");
+
+                for (Role role : roles) {
+                    UserRolePermission userRolePermission = new UserRolePermission();
+                    userRolePermission.setUser(user);    // Set the user
+                    userRolePermission.setRole(role);    // Set the role
+                    // Set permissions if needed (not required in your case)
+                    userRolePermissionRepository.save(userRolePermission);
+                }
+
             }
             log.info("Application initialization completed .....");
         };

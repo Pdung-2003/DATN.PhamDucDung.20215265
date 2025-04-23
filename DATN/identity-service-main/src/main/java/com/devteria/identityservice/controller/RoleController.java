@@ -36,9 +36,10 @@ public class RoleController {
                 .build();
     }
 
-    @DeleteMapping("/{role}")
-    ApiResponse<Void> delete(@PathVariable String role) {
-        roleService.delete(role);
+    @DeleteMapping("/{roleId}")
+    ApiResponse<Void> delete(@PathVariable Long roleId) {  // Sử dụng Long thay vì String
+        roleService.delete(roleId);
         return ApiResponse.<Void>builder().build();
     }
 }
+
