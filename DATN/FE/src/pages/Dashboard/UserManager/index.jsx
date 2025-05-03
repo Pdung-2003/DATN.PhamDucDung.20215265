@@ -1,11 +1,39 @@
 import AppModal from '@/components/common/AppModal';
 import SearchDebounce from '@/components/common/SearchDebounce';
+import UserManagerModal from '@/components/user/UserManagerModal';
+import { useUserDispatch, useUserState } from '@/contexts/UserContext';
+import { useUserActions } from '@/hooks/useUserActions';
+import { deleteUser } from '@/services/user.service';
 import { Pencil, Trash } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const UserManager = () => {
+  const dispatch = useUserDispatch();
+  const { users } = useUserState();
+  const [userDelete, setUserDelete] = useState(null);
   const [search, setSearch] = useState('');
-  const [deleteUser, setDeleteUser] = useState(null);
+  const [userEdit, setUserEdit] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
+
+  const { fetchUsers } = useUserActions();
+
+  const handleDeleteUser = async (id) => {
+    try {
+      await deleteUser(id);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setUserDelete(null);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+
+    return () => {
+      dispatch({ type: 'SET_USERS', payload: [] });
+    };
+  }, []);
 
   useEffect(() => {
     const tableEl = document.getElementById('table-container');
@@ -26,7 +54,9 @@ const UserManager = () => {
           className="w-full rounded-md p-2 h-full"
         />
         <div className="col-span-4 flex justify-end">
-          <button className="btn-primary">Thêm người dùng</button>
+          <button className="btn-primary" onClick={() => setOpenModal(true)}>
+            Thêm người dùng
+          </button>
         </div>
       </div>
       <div className="flex flex-col flex-1 mx-2 border border-gray-300 h-full overflow-hidden">
@@ -36,31 +66,33 @@ const UserManager = () => {
               <tr>
                 <th className="border border-gray-300 p-2">STT</th>
                 <th className="border border-gray-300 p-2">Họ tên</th>
+                <th className="border border-gray-300 p-2">Tài khoản</th>
                 <th className="border border-gray-300 p-2">Email</th>
                 <th className="border border-gray-300 p-2">Số điện thoại</th>
-                <th className="border border-gray-300 p-2">Ngày sinh</th>
-                <th className="border border-gray-300 p-2">Giới tính</th>
-                <th className="border border-gray-300 p-2">Trạng thái</th>
-                <th className="border border-gray-300 p-2">Hành động</th>
+                <th className="border border-gray-300 p-2">Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: 50 }).map((_, index) => (
-                <tr key={index} className="hover:bg-gray-50">
+              {users.map((user, index) => (
+                <tr key={user.id} className="hover:bg-gray-50">
                   <td className="border border-gray-300 text-center p-2">{index + 1}</td>
-                  <td className="border border-gray-300 p-2">Nguyễn Văn A</td>
-                  <td className="border border-gray-300 p-2">nguyenvana@gmail.com</td>
-                  <td className="border border-gray-300 p-2">0909090909</td>
-                  <td className="border border-gray-300 p-2">01/01/2000</td>
-                  <td className="border border-gray-300 p-2">Nam</td>
-                  <td className="border border-gray-300 p-2">Hoạt động</td>
+                  <td className="border border-gray-300 p-2">{user.fullName}</td>
+                  <td className="border border-gray-300 p-2">{user.username}</td>
+                  <td className="border border-gray-300 p-2">{user.email}</td>
+                  <td className="border border-gray-300 p-2">{user.phoneNumber}</td>
                   <td className="border border-gray-300 p-2 text-center">
-                    <button className="bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600 mr-2">
+                    <button
+                      className="bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600 mr-2"
+                      onClick={() => {
+                        setUserEdit(user.id);
+                        setOpenModal(true);
+                      }}
+                    >
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button
                       className="bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600"
-                      onClick={() => setDeleteUser(true)}
+                      onClick={() => setUserDelete(user.id)}
                     >
                       <Trash className="w-4 h-4" />
                     </button>
@@ -86,17 +118,27 @@ const UserManager = () => {
           </div>
         </div>
         <AppModal
-          open={!!deleteUser}
-          onClose={() => setDeleteUser(null)}
+          open={!!userDelete}
+          onClose={() => setUserDelete(null)}
           title="Bạn có chắc chắn muốn xóa người dùng này không?"
           content={
             <div className="flex flex-row justify-end gap-2">
-              <button className="btn-outline-secondary" onClick={() => setDeleteUser(null)}>
+              <button className="btn-outline-secondary" onClick={() => setUserDelete(null)}>
                 Đóng
               </button>
-              <button className="btn-primary">Xác nhận</button>
+              <button className="btn-primary" onClick={() => handleDeleteUser(userDelete)}>
+                Xác nhận
+              </button>
             </div>
           }
+        />
+        <UserManagerModal
+          open={openModal}
+          onClose={() => {
+            setOpenModal(false);
+            setUserEdit(null);
+          }}
+          userId={userEdit}
         />
       </div>
     </div>
