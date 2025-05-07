@@ -1,5 +1,6 @@
 package com.devteria.identityservice.exception;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 
@@ -14,6 +15,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import com.devteria.identityservice.dto.request.ApiResponse;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.context.request.WebRequest;
+
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @ControllerAdvice
 @Slf4j
@@ -21,7 +26,7 @@ public class GlobalExceptionHandler {
 
     private static final String MIN_ATTRIBUTE = "min";
 
-    @ExceptionHandler(value = Exception.class)
+    @ExceptionHandler(value = RuntimeException.class)
     ResponseEntity<ApiResponse> handlingRuntimeException(RuntimeException exception) {
         log.error("Exception: ", exception);
         ApiResponse apiResponse = new ApiResponse();
@@ -32,13 +37,39 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(apiResponse);
     }
 
-    @ExceptionHandler(value = AppException.class)
-    ResponseEntity<ApiResponse> handlingAppException(AppException exception) {
-        ErrorCode errorCode = exception.getErrorCode();
-        ApiResponse apiResponse = new ApiResponse();
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(BadRequestException e, WebRequest request){
+        return ResponseEntity.badRequest().body(
+                ErrorResponse.builder()
+                        .timestamp(new Date())
+                        .status(BAD_REQUEST.value())
+                        .error(BAD_REQUEST.getReasonPhrase())
+                        .path(request.getDescription(false).replace("uri=",""))
+                        .message(e.getMessage())
+                        .build()
+        );
+    }
 
-        apiResponse.setCode(errorCode.getCode());
-        apiResponse.setMessage(errorCode.getMessage());
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException e, WebRequest request){
+        return ResponseEntity.status(NOT_FOUND).body(
+                ErrorResponse.builder()
+                        .timestamp(new Date())
+                        .status(NOT_FOUND.value())
+                        .error(NOT_FOUND.getReasonPhrase())
+                        .path(request.getDescription(false).replace("uri=",""))
+                        .message(e.getMessage())
+                        .build()
+        );
+    }
+
+    @ExceptionHandler(value = AppException.class)
+    ResponseEntity<ApiResponse<?>> handlingAppException(AppException exception) {
+        ErrorCode errorCode = exception.getErrorCode();
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .code(errorCode.getCode())
+                .message(errorCode.getMessage())
+                .build();
 
         return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
     }
