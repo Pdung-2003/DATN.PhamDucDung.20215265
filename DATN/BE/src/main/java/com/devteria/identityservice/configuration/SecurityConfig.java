@@ -1,6 +1,6 @@
 package com.devteria.identityservice.configuration;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -20,20 +20,25 @@ import org.springframework.web.filter.CorsFilter;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
     private final String[] PUBLIC_ENDPOINTS = {
-        "/users", "/auth/token", "/auth/introspect", "/auth/logout", "/auth/refresh"
+        "/auth/token", "/auth/introspect", "/auth/logout", "/auth/refresh",
+        "/users/register",
+        "/api/tours/search",
     };
 
-    @Autowired
-    private CustomJwtDecoder customJwtDecoder;
+    private final CustomJwtDecoder customJwtDecoder;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.authorizeHttpRequests(request -> request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS)
-                .permitAll()
-                .anyRequest()
-                .authenticated());
+        httpSecurity.authorizeHttpRequests(request -> request
+                .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/tours/{tourId}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/itineraries/{itineraryId}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/itineraries/tour/{tourId}").permitAll()
+
+                .anyRequest().authenticated());
 
         httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer
                         .decoder(customJwtDecoder)
