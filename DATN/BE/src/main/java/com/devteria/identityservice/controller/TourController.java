@@ -5,7 +5,6 @@ import com.devteria.identityservice.dto.request.TourFilterRequest;
 import com.devteria.identityservice.dto.request.TourRequest;
 import com.devteria.identityservice.dto.response.PaginationResponse;
 import com.devteria.identityservice.dto.response.TourResponse;
-import com.devteria.identityservice.service.CloudinaryService;
 import com.devteria.identityservice.service.TourService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,8 +50,9 @@ public class TourController {
     }
 
     //Lấy tất cả các tour
-    @PostMapping("/search")
-    public ResponseEntity<ApiResponse<?>> getTours(@RequestBody TourFilterRequest filterRequest) {
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<?>> getTours(@RequestBody(required = false) TourFilterRequest filterRequest) {
+        log.info("API search tour with request: {}", filterRequest);
         Page<TourResponse> tours = tourService.searchTour(filterRequest);
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .result(tours.getContent())

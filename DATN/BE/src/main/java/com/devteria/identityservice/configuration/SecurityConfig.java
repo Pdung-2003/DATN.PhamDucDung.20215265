@@ -23,29 +23,14 @@ import org.springframework.web.filter.CorsFilter;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final String[] PUBLIC_ENDPOINTS = {
-        "/auth/login", "/auth/introspect", "/auth/logout", "/auth/refresh",
+        "/auth/token", "/auth/introspect", "/auth/logout", "/auth/refresh",
         "/users/register",
         "/api/tours/search",
+        "/api/feedbacks/tour-avg-rating/{tourId}", "/api/feedbacks/tour/{tourId}"
     };
 
     private final CustomJwtDecoder customJwtDecoder;
 
-
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-//        httpSecurity.authorizeHttpRequests(request -> request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS)
-//                .permitAll()
-//                .anyRequest()
-//                .authenticated());
-//
-//        httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer
-//                        .decoder(customJwtDecoder)
-//                        .jwtAuthenticationConverter(jwtAuthenticationConverter()))
-//                .authenticationEntryPoint(new JwtAuthenticationEntryPoint()));
-//        httpSecurity.csrf(AbstractHttpConfigurer::disable);
-//
-//        return httpSecurity.build();
-//    }
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(request -> request
@@ -53,7 +38,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/tours/{tourId}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/itineraries/{itineraryId}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/itineraries/tour/{tourId}").permitAll()
-
+                .requestMatchers(HttpMethod.GET, "/api/feedbacks/{feedbackId}").permitAll()
                 .anyRequest().authenticated());
 
         httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer
