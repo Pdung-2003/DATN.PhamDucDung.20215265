@@ -57,6 +57,15 @@ public class User {
 
     private LocalDateTime passwordResetExpiry;
 
+    @Column(name = "password")
+    private String password;
+
+    @Column(name = "reset_password_token")
+    private String resetPasswordToken;
+
+    @Column(name = "reset_password_token_expiry")
+    private LocalDateTime resetPasswordTokenExpiry;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
