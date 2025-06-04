@@ -12,7 +12,6 @@ const Profile = () => {
       <div className="border-r border-gray-200"></div>
       <div className="flex-1 p-5">
         {tab === USER_MANAGER_TABS.PROFILE && <ProfileForm />}
-        {tab === USER_MANAGER_TABS.ORDER && <OrderTour />}
       </div>
     </div>
   );

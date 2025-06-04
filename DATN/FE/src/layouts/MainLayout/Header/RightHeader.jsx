@@ -1,8 +1,11 @@
+// FE/src/layouts/MainLayout/Header/RightHeader.jsx
 import FavoritesDialog from '@/components/sections/FavoritesDialog';
 import { useAuthState } from '@/contexts/AuthContext';
 import AvatarProfile from '@/layouts/MainLayout/Header/AvatarProfile';
 import LoginModal from '@/layouts/MainLayout/Header/LoginModal';
+import { ShoppingBag } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const RightHeader = () => {
   const { isAuthenticated } = useAuthState();
@@ -11,7 +14,16 @@ const RightHeader = () => {
   return (
     <div className="flex flex-row items-center h-full">
       {isAuthenticated ? (
-        <AvatarProfile />
+        <>
+          <Link
+            to="/orders"
+            className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg mr-2"
+          >
+            <ShoppingBag className="w-5 h-5" />
+            <span className="text-sm font-medium">Đơn hàng</span>
+          </Link>
+          <AvatarProfile />
+        </>
       ) : (
         <>
           <p
@@ -23,31 +35,6 @@ const RightHeader = () => {
           <LoginModal open={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
         </>
       )}
-      <div className="flex flex-row items-center space-x-2 px-2  border-l border-gray-300">
-        <img
-          src={'https://www.bestprice.vn/assets/img/icon/ho-tro.png'}
-          alt="icon"
-          width={38}
-          height={38}
-        />
-        <div className="flex flex-col">
-          <p
-            className="text-lg font-semibold text-red-800"
-            style={{
-              lineHeight: '24px',
-            }}
-          >
-            1900 2605
-          </p>
-          <p
-            style={{
-              lineHeight: '20px',
-            }}
-          >
-            (024/028) 7307 2605
-          </p>
-        </div>
-      </div>
       <FavoritesDialog open={false} onClose={() => {}} />
     </div>
   );

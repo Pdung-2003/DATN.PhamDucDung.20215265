@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Xác nhận Tour đã được quản lý phê duyệt</title>
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; }
+        .container { max-width: 800px; margin: auto; padding: 20px; background-color: #f9f9f9; border-radius: 8px; }
+        .header { border-bottom: 2px solid #ccc; padding-bottom: 10px; margin-bottom: 20px; }
+        .section { margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 8px 12px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #f5f5f5; }
+        .note { font-size: 14px; color: #555; margin-bottom: 20px; }
+        .footer { margin-top: 30px; font-size: 14px; color: #777; }
+        .highlight { color: #d9534f; font-weight: bold; }
+        a.btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #1a73e8;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        a.btn:hover {
+            background-color: #0f5bd3;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <p>Xin chào <strong th:text="${customerName}">Khách hàng</strong>,</p>
+        <p>Tour của bạn đã được quản lý xác nhận thành công.</p>
+        <p class="note">Bạn vui lòng vào hồ sơ cá nhân để tiến hành thanh toán tour.</p>
+    </div>
+
+    <div class="section">
+        <h3>Thông tin tour</h3>
+        <p><strong>Mã đơn hàng:</strong> <span class="highlight" th:text="${bookingCode}">ABC123456</span></p>
+        <p><strong>Tên tour:</strong> <span th:text="${tourName}">Tour Đà Nẵng</span></p>
+        <p><strong>Địa điểm:</strong> <span th:text="${location}">Đà Nẵng</span></p>
+        <p><strong>Ngày khởi hành:</strong> <span th:text="${startDate}">2025-06-01</span></p>
+        <p><strong>Số lượng khách:</strong> <span th:text="${numAdults}">2</span> người lớn</p>
+
+        <table>
+            <tbody>
+            <tr>
+                <td colspan="3" class="total">Tổng tiền:</td>
+                <td class="total" th:text="${total}">680.000đ</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        <p>Trân trọng cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>
+        <p>Web du lịch TourXuyenViet</p>
+        <p>Hotline: 1900 2605 | Website: <a href="https://www.bestprice.vn">www.TourXuyenViet.vn</a></p>
+    </div>
+</div>
+</body>
+</html>

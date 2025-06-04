@@ -66,7 +66,43 @@ public class EmailService {
         model.put("total", booking.getPriceBooking());
         this.sendEmail(user.getEmail(), subject, model, "booking-confirm-template");
     }
+    @Async("taskExecutor")
+    public void sendEmailConfirmPaidTour(User user, Tour tour, Booking booking) {
+        String subject = "Xác nhận thanh toán tour thành công";
+        Map<String, Object> model = new HashMap<>();
+        model.put("customerName", user.getFullName());
+        model.put("email", user.getEmail());
+        model.put("phone", user.getPhoneNumber());
+        model.put("bookingCode", booking.getBookingCode());
+        model.put("tourName", tour.getTourName());
+        model.put("location", tour.getLocation());
+        model.put("startDate", tour.getStartDate());
+        model.put("endDate", tour.getEndDate());
+        model.put("numAdults", booking.getNumberOfPeople());
+        model.put("subtotal", booking.getPriceBooking());
+        model.put("discount", 0); // nếu có tính điểm giảm giá thì cập nhật
+        model.put("total", booking.getPriceBooking());
+        model.put("note", "Chúng tôi sẽ liên hệ với bạn sớm nhất."); // thêm phần xác nhận đã thanh toán
 
+        this.sendEmail(user.getEmail(), subject, model, "booking-paid-confirm-template");
+    }
+    @Async("taskExecutor")
+    public void sendEmailConfirmBooking(User user, Tour tour, Booking booking) {
+        String subject = "Xác nhận đặt tour thành công";
+        Map<String, Object> model = new HashMap<>();
+        model.put("customerName", user.getFullName());
+        model.put("email", user.getEmail());
+        model.put("phone", user.getPhoneNumber());
+        model.put("bookingCode", booking.getBookingCode());
+        model.put("tourName", tour.getTourName());
+        model.put("location", tour.getLocation());
+        model.put("startDate", tour.getStartDate());
+        model.put("endDate", tour.getEndDate());
+        model.put("numAdults", booking.getNumberOfPeople());
+        model.put("note", "Quản lý đã xác nhận tour của bạn. Vui lòng vào hồ sơ cá nhân để thanh toán tour.");
+
+        this.sendEmail(user.getEmail(), subject, model, "booking-confirmed-notify-template");
+    }
     @Async("taskExecutor")
     public void sendEmailVerify(User newUser) {
         String subject = "Email xác thực";
