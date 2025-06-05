@@ -5,9 +5,8 @@ import { login } from '@/services/auth.service';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
-import PropTypes from 'prop-types';
 
-const LoginForm = ({ onForgotPassword }) => {
+const LoginForm = () => {
   const dispatch = useAuthDispatch();
   const { fetchProfile } = useAuthActions();
   const { control, handleSubmit, reset, setError } = useForm({
@@ -78,13 +77,6 @@ const LoginForm = ({ onForgotPassword }) => {
             type: 'password',
           }}
         />
-        <button
-          type="button"
-          className="text-sm text-blue-600 hover:text-blue-800 text-right"
-          onClick={() => onForgotPassword?.()}
-        >
-          Quên mật khẩu?
-        </button>
       </div>
       <button type="submit" className="btn-primary">
         Đăng nhập
@@ -98,8 +90,4 @@ export default LoginForm;
 const INIT_VALUES = {
   username: '',
   password: '',
-};
-
-LoginForm.propTypes = {
-  onForgotPassword: PropTypes.func,
 };

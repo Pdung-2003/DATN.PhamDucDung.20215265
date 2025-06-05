@@ -15,14 +15,6 @@ const SidebarUser = ({ tab, setTab }) => {
         Hồ sơ cá nhân
       </button>
       <button
-        className={`text-sm font-medium  text-left py-2 px-4 hover:bg-gray-100 rounded-lg ${
-          tab === USER_MANAGER_TABS.ORDER ? 'bg-gray-100 text-black' : 'text-gray-500'
-        }`}
-        onClick={() => setTab(USER_MANAGER_TABS.ORDER)}
-      >
-        Đơn hàng
-      </button>
-      <button
         className={`text-sm font-medium text-red-600  text-left py-2 px-4 hover:bg-red-600 hover:text-white rounded-lg`}
         onClick={logout}
       >

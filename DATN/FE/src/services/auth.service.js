@@ -20,8 +20,3 @@ export const introspect = async () => {
   const response = await mainRequest.post('/auth/introspect', { token });
   return response.data;
 };
-
-export const forgotPassword = async (data) => {
-  const response = await mainRequest.post('/auth/forgot-password', data);
-  return response.data;
-};

@@ -19,8 +19,6 @@ public interface UserRepository extends JpaRepository<User, Long> {  // Sửa ki
 
     Optional<User> findById(Long id);  // Cập nhật kiểu ID
 
-    Optional<User> findByEmail(String email);
-
     @Query("""
             SELECT u FROM User u
             JOIN u.userRolePermissions urp

@@ -119,9 +119,24 @@ public class BookingService {
         //kiểm tra chỉ có admin hoặc tour manager quản lý tour đó mới được chỉnh sửa
         Long managerId = booking.getTour().getManager().getId();
         assertCanModifyBooking(authentication, managerId);
-
         booking.setStatus(newStatus);
-        return bookingMapper.toResponse(bookingRepository.save(booking));
+        Booking savedBooking = bookingRepository.save(booking);
+
+        if (newStatus == Booking.Status.PAID) {
+            emailService.sendEmailConfirmPaidTour(
+                    savedBooking.getCustomer(),
+                    savedBooking.getTour(),
+                    savedBooking
+            );
+        } else if (newStatus == Booking.Status.CONFIRMED) {
+            emailService.sendEmailConfirmBooking(
+                    savedBooking.getCustomer(),
+                    savedBooking.getTour(),
+                    savedBooking
+            );
+        }
+
+        return bookingMapper.toResponse(savedBooking);
     }
 
     @Transactional(rollbackFor = Exception.class)

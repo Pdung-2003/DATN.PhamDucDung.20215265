@@ -12,6 +12,7 @@ import TourDetails from './pages/TourDetails';
 import Authentication from './Authentication';
 import Checkout from './pages/Checkout';
 import RequestBooking from './pages/Dashboard/RequestBooking';
+import Orders from '@/pages/Order';
 
 function App() {
   return (
@@ -78,6 +79,10 @@ export const USER_PRIVATE_ROUTES = [
   {
     path: '/profile',
     element: Profile,
+  },
+  {
+    path: '/orders',
+    element: Orders,
   },
   {
     path: '/checkout',

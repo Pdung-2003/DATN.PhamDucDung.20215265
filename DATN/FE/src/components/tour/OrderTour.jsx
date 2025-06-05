@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import ReviewTourModal from './ReviewTourModal';
+import { Link } from 'react-router-dom';
 
 const OrderTour = () => {
   const dispatch = useBookingDispatch();
@@ -21,7 +22,6 @@ const OrderTour = () => {
 
   return (
     <div className="flex flex-col space-y-3">
-      <h1 className="text-2xl font-bold">Đơn hàng</h1>
       <div className="flex flex-col space-y-3 overflow-y-auto max-h-[500px]">
         {booking.map((booking) => (
           <OrderTourItem key={booking.id} booking={booking} />
@@ -52,7 +52,12 @@ const OrderTourItem = ({ booking }) => {
   return (
     <div className="flex flex-row justify-between items-center border-t border-gray-200 py-2">
       <div className="flex flex-col">
-        <p className="text-lg font-bold">Tour: {booking?.tourName}</p>
+        <Link
+          to={`/tour-details/${booking?.tourId}`}
+          className="text-lg font-bold text-blue-700 hover:underline cursor-pointer"
+        >
+          Tour: {booking?.tourName}
+        </Link>
         <p className="text-sm text-gray-500">Số người: {booking?.numberOfPeople}</p>
         <p className="text-sm text-gray-500">
           Giá:{' '}
