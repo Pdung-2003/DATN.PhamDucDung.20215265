@@ -48,3 +48,8 @@ export const getFeedbacksByTourId = async (tourId) => {
   const response = await mainRequest.get(`/api/feedbacks/tour/${tourId}`);
   return response.data;
 };
+
+export const approveTour = async (tourId) => {
+  const response = await mainRequest.patch(`/api/tours/${tourId}/status?status=APPROVED`);
+  return response.data;
+};

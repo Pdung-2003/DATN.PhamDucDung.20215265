@@ -7,6 +7,7 @@ import lombok.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Builder
 @Getter
@@ -14,7 +15,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class TourFilterRequest implements Serializable { private String tourName = "";
+public class TourFilterRequest implements Serializable {
+    private String tourName = "";
     private String location = "";
     private String destination = "";
     private LocalDate startDateFrom = LocalDate.of(1, 12, 31);
@@ -26,9 +28,17 @@ public class TourFilterRequest implements Serializable { private String tourName
     private String company = "";
     private String sortBy;  // [field1:direction1,field2:direction2] VD:startDate:desc,price:asc
     private String sortDirection = "asc";
+    @Getter
+    @Setter
+    private LocalDate endDateFrom;
 
     @Min(value = 0)
     private Integer pageNumber = 0;
     @Min(value = 1)
     private Integer pageSize = 10;
+
+    @Setter
+    @Getter
+    private List<Tour.Status> statuses;
+
 }

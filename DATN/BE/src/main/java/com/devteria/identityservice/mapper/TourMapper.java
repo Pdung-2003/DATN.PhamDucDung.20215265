@@ -15,6 +15,7 @@ public interface TourMapper {
     Tour toEntity(TourRequest tourRequest);
 
     @Mapping(target = "manager", expression = "java(buildManagerDataTour(tour))")
+    @Mapping(target = "status", expression = "java(tour.getStatus() != null ? tour.getStatus().name() : null)")
     TourResponse toResponse(Tour tour);
 
     default Tour updateTour(TourRequest request, Tour existTour) {

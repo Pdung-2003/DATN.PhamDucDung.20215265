@@ -64,7 +64,7 @@ const RequestBooking = () => {
             id="status"
             value={filter?.status || ''}
             onChange={(e) =>
-              dispatch({ type: 'SET_FILTER', payload: { ...filter, status: e.target.value } })
+              dispatch({ type: 'SET_FILTER', payload: { ...filter, status: e.target.value === '' ? undefined : e.target.value } })
             }
             className="w-full border border-gray-300 rounded-md p-2"
           >

@@ -10,6 +10,7 @@ import { tourService } from '@/services';
 import { Ellipsis } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
+import { approveTour } from '@/services/tour.service';
 
 const TourManager = () => {
   const { user } = useAuthState();
@@ -23,9 +24,13 @@ const TourManager = () => {
   const [isAddTourOpen, setIsAddTourOpen] = useState(false);
   const [isUpdateTourOpen, setIsUpdateTourOpen] = useState(null);
   const [isShowItineraryModal, setIsShowItineraryModal] = useState(null);
-
+  
   const isTourManager = useMemo(() => {
     return user?.roles?.some((role) => role.name === 'TOUR_MANAGER');
+  }, [user?.roles]);
+
+  const isAdmin = useMemo(() => {
+    return user?.roles?.some((role) => role.name === 'ADMIN');
   }, [user?.roles]);
 
   const deleteTour = async (tourId) => {
@@ -38,16 +43,35 @@ const TourManager = () => {
       toast.error('Xóa tour thất bại');
     }
   };
+  const getStatusBadge = (status) => {
+    const statusConfig = {
+      PENDING: { color: 'bg-yellow-500', text: 'Chờ duyệt' },
+      APPROVED: { color: 'bg-green-500', text: 'Đã duyệt' },
+      REJECTED: { color: 'bg-red-500', text: 'Từ chối' },
+      INACTIVE: { color: 'bg-gray-500', text: 'Hết hạn' },
+      CANCELLED: { color: 'bg-red-600', text: 'Đã hủy' }
+    };
+
+    const config = statusConfig[status] || { color: 'bg-gray-500', text: status };
+    return (
+      <span className={`${config.color} text-white text-xs px-2 py-1 rounded-full`}>
+        {config.text}
+      </span>
+    );
+  };
 
   useEffect(() => {
     if (user?.id) {
-      fetchTours({
-        ...filter,
-        ...pagination,
-        managerId: isTourManager ? user?.id : filter?.managerId,
-      });
+      const filterToSend = { ...filter, ...pagination };
+      if (isTourManager) {
+        filterToSend.managerId = user?.id;
+      }
+      if (isAdmin && Array.isArray(filterToSend.statuses) && filterToSend.statuses.length === 0) {
+        delete filterToSend.statuses;
+      }
+      fetchTours(filterToSend);
     }
-  }, [filter, pagination, isTourManager, user?.id]);
+  }, [filter, pagination, isTourManager, isAdmin, user?.id]);
 
   useEffect(() => {
     return () => {
@@ -98,7 +122,7 @@ const TourManager = () => {
           placeholder="Tên tour..."
           className="w-full rounded-md p-2 h-full"
         />
-        {isTourManager && (
+        {(isTourManager || isAdmin) && (
           <div className="col-span-4 flex justify-end">
             <button className="btn-primary" onClick={() => setIsAddTourOpen(true)}>
               Thêm mới
@@ -117,6 +141,7 @@ const TourManager = () => {
                 <th className="border border-gray-300 p-2">Người quản lý</th>
                 <th className="border border-gray-300 p-2">Thời gian</th>
                 <th className="border border-gray-300 p-2">Địa điểm</th>
+                <th className="border border-gray-300 p-2 w-32">Trạng thái</th> 
                 <th className="border border-gray-300 p-2">Giá</th>
                 <th className="border border-gray-300 p-2">Thao tác</th>
               </tr>
@@ -131,7 +156,10 @@ const TourManager = () => {
                   <td className="border border-gray-300 p-2">{tour.companyName}</td>
                   <td className="border border-gray-300 p-2">{tour?.manager?.fullName}</td>
                   <td className="border border-gray-300 p-2">{tour.duration}</td>
-                  <td className="border border-gray-300 p-2">{tour.location}</td>
+                  <td className="border border-gray-300 p-2 w-40">{tour.location}</td>
+                  <td className="border border-gray-300 p-2 w-32">
+                    {getStatusBadge(tour.status)}
+                  </td>
                   <td className="border border-gray-300 p-2">
                     {tour?.price?.toLocaleString('vi-VN', {
                       style: 'currency',
@@ -140,7 +168,7 @@ const TourManager = () => {
                   </td>
                   <td className="border border-gray-300 p-2 text-center">
                     <div className="relative dropdown-container flex items-center justify-center">
-                      {isTourManager && (
+                      {(isTourManager || isAdmin) && (
                         <button onClick={() => setOpenDropdown(tour?.tourId)}>
                           <Ellipsis className="w-4 h-4" />
                         </button>
@@ -165,6 +193,27 @@ const TourManager = () => {
                           >
                             Danh sách lịch trình
                           </button>
+                          {tour.status === 'PENDING' && (
+                            <button
+                              onClick={async () => {
+                                setOpenDropdown(null);
+                                try {
+                                  await approveTour(tour.tourId);
+                                  toast.success('Duyệt tour thành công!');
+                                  // Gọi lại fetchTours để reload danh sách
+                                  const filterToSend = { ...filter, ...pagination };
+                                  if (isTourManager) filterToSend.managerId = user?.id;
+                                  if (isAdmin && Array.isArray(filterToSend.statuses) && filterToSend.statuses.length === 0) delete filterToSend.statuses;
+                                  fetchTours(filterToSend);
+                                } catch (error) {
+                                  toast.error('Duyệt tour thất bại!');
+                                }
+                              }}
+                              className="flex items-center px-4 py-2 hover:bg-green-100 w-full text-left text-green-600"
+                            >
+                              Duyệt
+                            </button>
+                          )}
                           <button
                             onClick={() => {
                               setOpenDropdown(null);

@@ -80,9 +80,14 @@ public class Tour {
     private LocalDateTime updatedAt;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "tour_status")
     private Status status;
 
     public enum Status {
-        ACTIVE, INACTIVE, CANCELLED
+        PENDING,    // Khi tạo tour, nó sẽ mặc định là PENDING.
+        APPROVED,   // Khi tour được admin phê duyệt.
+        INACTIVE,   // Khi tour đã hết hạn (ngày kết thúc đã qua).
+        CANCELLED,  // Khi tour bị hủy.
+        REJECTED    // Khi tour bị từ chối bởi admin hoặc manager.
     }
 }

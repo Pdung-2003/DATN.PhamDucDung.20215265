@@ -42,7 +42,6 @@ export function useBookingActions() {
     try {
       await bookingService.changeBookingStatus(bookingId, status);
       dispatch({ type: 'SET_PAGINATION', payload: DEFAULT_PAGINATION });
-      toast.success('Cập nhật trạng thái thành công');
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
       toast.error(error?.response?.data?.message || 'Cập nhật trạng thái thất bại');

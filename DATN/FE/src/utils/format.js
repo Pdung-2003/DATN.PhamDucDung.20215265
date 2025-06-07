@@ -8,7 +8,7 @@ export const formatCurrency = (value) => {
 
 export const cleanBody = (body) => {
   return Object.entries(body).reduce((acc, [key, value]) => {
-    if (value !== null && value !== '' && value !== undefined) {
+    if (value !== null && value !== undefined && value !== '') {
       acc[key] = value;
     }
     return acc;

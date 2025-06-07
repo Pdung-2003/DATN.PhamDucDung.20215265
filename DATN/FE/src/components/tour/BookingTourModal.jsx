@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 import { bookingService } from '@/services';
 import PropTypes from 'prop-types';
 
-const BookingTourModal = ({ open, onClose, tourId }) => {
+const BookingTourModal = ({ open, onClose, tourId, onBookedSuccess }) => {
   const { user } = useAuthState();
 
   const { control, reset, handleSubmit } = useForm({
@@ -27,6 +27,7 @@ const BookingTourModal = ({ open, onClose, tourId }) => {
         tourId: Number(tourId),
         customerId: user?.id,
       });
+      if (onBookedSuccess) onBookedSuccess();
       toast.success('Đặt tour thành công. Vui lòng kiểm tra lại đơn hàng');
       handleClose();
     } catch (error) {
@@ -95,4 +96,5 @@ BookingTourModal.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   tourId: PropTypes.string,
+  onBookedSuccess: PropTypes.func,
 };

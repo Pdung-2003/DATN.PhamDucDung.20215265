@@ -4,7 +4,37 @@ import { useNavigate } from 'react-router-dom';
 
 const TourItem = ({ tour, isManager = false }) => {
   const navigate = useNavigate();
+  
+  const getStatusBadge = (status) => {
+    const statusConfig = {
+      PENDING: { color: 'bg-yellow-500', text: 'Chờ duyệt' },
+      APPROVED: { color: 'bg-green-500', text: 'Đã duyệt' },
+      REJECTED: { color: 'bg-red-500', text: 'Từ chối' },
+      INACTIVE: { color: 'bg-gray-500', text: 'Hết hạn' },
+      CANCELLED: { color: 'bg-red-600', text: 'Đã hủy' }
+    };
 
+    const config = statusConfig[status] || { color: 'bg-gray-500', text: status };
+    return (
+      <span className={`${config.color} text-white text-xs px-2 py-1 rounded-full`}>
+        {config.text}
+      </span>
+    );
+  };
+
+  const canShowTour = () => {
+    if (isManager) return true; // Tour manager thấy tất cả tour của mình
+    if (tour.status === 'APPROVED') return true;
+    if (tour.status === 'INACTIVE') {
+      const endDate = new Date(tour.endDate);
+      const twentyDaysAgo = new Date();
+      twentyDaysAgo.setDate(twentyDaysAgo.getDate() - 20);
+      return endDate >= twentyDaysAgo;
+    }
+    return false;
+  };
+
+  if (!canShowTour()) return null;
   return (
     <div
       className="flex flex-row bg-white overflow-hidden border border-gray-200 h-full w-full cursor-pointer"
@@ -26,12 +56,6 @@ const TourItem = ({ tour, isManager = false }) => {
             <p className="text-sm text-gray-500 italic line-clamp-2">{tour?.description}</p>
             <p className="text-sm text-gray-500">{tour?.manager?.fullName}</p>
           </div>
-          {/* <div className="flex items-center gap-2">
-              <span className="bg-blue-600 text-white text-sm font-bold px-2 py-1 rounded">
-                8.9
-              </span>
-              <span className="text-gray-700 font-medium">Rất tốt - 13 đánh giá</span>
-            </div> */}
           {isManager && (
             <div className="flex items-center gap-2">
               <button className="text-blue-600 hover:text-blue-800">
@@ -53,14 +77,6 @@ const TourItem = ({ tour, isManager = false }) => {
 
         {/* Buttons & Price */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 gap-4">
-          {/* <div className="flex flex-wrap gap-2">
-            <button className="bg-orange-100 text-orange-600 border border-orange-400 px-3 py-1 rounded text-sm font-medium">
-              ĐẶT SỚM: Giảm 500K
-            </button>
-            <button className="bg-blue-100 text-blue-600 border border-blue-400 px-3 py-1 rounded text-sm font-medium">
-              Tặng Vali Cao Cấp 1,5 Triệu Đồng
-            </button>
-          </div> */}
           <div className="flex items-center gap-2">
             {tour?.discount && (
               <span className="line-through text-gray-400 text-sm">
@@ -78,13 +94,6 @@ const TourItem = ({ tour, isManager = false }) => {
             </span>
           </div>
         </div>
-
-        {/* Tag */}
-        {/* <div className="mt-3">
-          <span className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-medium">
-            7N6Đ
-          </span>
-        </div> */}
       </div>
     </div>
   );

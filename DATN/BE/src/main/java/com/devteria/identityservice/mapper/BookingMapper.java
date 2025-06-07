@@ -12,9 +12,14 @@ public interface BookingMapper {
 
     Booking toEntity(BookingRequest bookingRequest);
 
-    @Mapping(target = "customerId", source = "customer.id")  // customerId sử dụng Long
-    @Mapping(target = "tourId", source = "tour.tourId")      // tourId sử dụng Long
+    @Mapping(target = "customerId", source = "customer.id")
+    @Mapping(target = "customerName", source = "customer.fullName")
+    @Mapping(target = "email", source = "customer.email")
+    @Mapping(target = "phone", source = "customer.phoneNumber")
+    @Mapping(target = "tourId", source = "tour.tourId")
     @Mapping(target = "tourName", source = "tour.tourName")
+    @Mapping(target = "location", source = "tour.location")
+    @Mapping(target = "endDate", source = "tour.endDate")
     BookingResponse toResponse(Booking booking);
 
     default Booking toEntityByUpdateRequest(BookingUpdateRequest request, Booking booking){

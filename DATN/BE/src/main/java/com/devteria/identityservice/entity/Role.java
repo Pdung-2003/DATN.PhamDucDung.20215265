@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "role")
@@ -28,6 +29,7 @@ public class Role {
     private String description;
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<UserRolePermission> userRolePermissions = new HashSet<>();
 
     public Set<Permission> getPermissions() {

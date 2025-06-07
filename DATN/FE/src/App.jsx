@@ -13,6 +13,10 @@ import Authentication from './Authentication';
 import Checkout from './pages/Checkout';
 import RequestBooking from './pages/Dashboard/RequestBooking';
 import Orders from '@/pages/Order';
+import AboutPage from '@/pages/About';
+import FAQPage from '@/pages/FAQ';
+import FAQDetail from '@/pages/FAQ/[slug]';
+import Suggest from '@/pages/Suggest';
 
 function App() {
   return (
@@ -72,6 +76,22 @@ export const PUBLIC_ROUTES = [
   {
     path: '/tour-details/:id',
     element: TourDetails,
+  },
+  {
+    path: '/about',
+    element: AboutPage,
+  },
+  {
+    path: '/faq',
+    element: FAQPage,
+  },
+  {
+    path: '/faq/:slug',
+    element: FAQDetail,
+  },
+  {
+    path: '/suggest',
+    element: Suggest,
   },
 ];
 

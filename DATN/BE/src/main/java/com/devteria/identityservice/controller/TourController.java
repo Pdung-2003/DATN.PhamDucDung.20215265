@@ -11,8 +11,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.devteria.identityservice.entity.Tour;
 
 import java.io.IOException;
 
@@ -28,9 +30,10 @@ public class TourController {
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_TOUR_MANAGER')")
     public ResponseEntity<ApiResponse<TourResponse>> createTour(@RequestPart(name = "tour") TourRequest tourRequest,
-                                                                @RequestPart(name = "banner") MultipartFile file
+                                                                @RequestPart(name = "banner") MultipartFile file,
+                                                                Authentication authentication
     ) {
-        TourResponse tourResponse = tourService.createTour(tourRequest, file);
+        TourResponse tourResponse = tourService.createTour(tourRequest, file, authentication);
         return ResponseEntity.ok().body(
                 ApiResponse.<TourResponse>builder()
                         .result(tourResponse)
@@ -51,8 +54,8 @@ public class TourController {
 
     //Lấy tất cả các tour
     @PostMapping("/search")
-    public ResponseEntity<ApiResponse<?>> getTours(@RequestBody(required = false) TourFilterRequest filterRequest) {
-        Page<TourResponse> tours = tourService.searchTour(filterRequest);
+    public ResponseEntity<ApiResponse<?>> getTours(@RequestBody(required = false) TourFilterRequest filterRequest, Authentication authentication) {
+        Page<TourResponse> tours = tourService.searchTour(filterRequest, authentication);
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .result(tours.getContent())
                 .pagination(new PaginationResponse(tours))
@@ -77,5 +80,21 @@ public class TourController {
     public ResponseEntity<Void> deleteTour(@PathVariable Long tourId) {
         tourService.deleteTour(tourId);
         return ResponseEntity.noContent().build();
+    }
+
+    // API admin duyệt/từ chối tour
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<TourResponse>> updateTourStatus(
+            @PathVariable Long id,
+            @RequestParam Tour.Status status,
+            Authentication authentication
+    ) {
+        TourResponse tourResponse = tourService.updateTourStatus(id, status, authentication);
+        return ResponseEntity.ok().body(
+                ApiResponse.<TourResponse>builder()
+                        .result(tourResponse)
+                        .build()
+        );
     }
 }

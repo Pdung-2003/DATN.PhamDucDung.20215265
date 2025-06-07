@@ -16,29 +16,29 @@ import java.util.List;
 public interface TourRepository extends JpaRepository<Tour, Long> {
 
     @Query("""
-        SELECT t FROM Tour t
-        WHERE ( t.tourName LIKE CONCAT('%', :tourName, '%'))
-          AND ( t.location LIKE CONCAT('%', :location, '%'))
-          AND ( t.destination LIKE CONCAT('%', :destination, '%'))
-          AND (t.startDate >= :startDateFrom)
-          AND (t.startDate <= :startDateTo)
-          AND (:minPrice IS NULL OR t.price >= :minPrice)
-          AND (:maxPrice IS NULL OR t.price <= :maxPrice)
-          AND (:status IS NULL OR t.status = :status)
-          AND (:managerId IS NULL OR t.manager.id = :managerId)
-          AND (t.companyName LIKE CONCAT('%', :company, '%'))
-        """)
+    SELECT t FROM Tour t
+    WHERE ( t.tourName LIKE CONCAT('%', :tourName, '%'))
+      AND ( t.location LIKE CONCAT('%', :location, '%'))
+      AND ( t.destination LIKE CONCAT('%', :destination, '%'))
+      AND (t.startDate >= :startDateFrom)
+      AND (t.startDate <= :startDateTo)
+      AND (:minPrice IS NULL OR t.price >= :minPrice)
+      AND (:maxPrice IS NULL OR t.price <= :maxPrice)
+      AND (:statuses IS NULL OR t.status IN :statuses)
+      AND (:managerId IS NULL OR t.manager.id = :managerId)
+      AND (t.companyName LIKE CONCAT('%', :company, '%'))
+    """)
     Page<Tour> searchTour(@Param("tourName") String tourName,
-                          @Param("location") String location,
-                          @Param("destination") String destination,
-                          @Param("startDateFrom") LocalDate startDateFrom,
-                          @Param("startDateTo") LocalDate startDateTo,
-                          @Param("minPrice") BigDecimal minPrice,
-                          @Param("maxPrice") BigDecimal maxPrice,
-                          @Param("status") Tour.Status status,
-                          @Param("managerId") Long managerId,
-                          @Param("company") String company,
-                          Pageable pageable);
+                      @Param("location") String location,
+                      @Param("destination") String destination,
+                      @Param("startDateFrom") LocalDate startDateFrom,
+                      @Param("startDateTo") LocalDate startDateTo,
+                      @Param("minPrice") BigDecimal minPrice,
+                      @Param("maxPrice") BigDecimal maxPrice,
+                      @Param("statuses") List<Tour.Status> statuses,
+                      @Param("managerId") Long managerId,
+                      @Param("company") String company,
+                      Pageable pageable);
 
 
     // Tìm kiếm theo managerId
@@ -49,4 +49,10 @@ public interface TourRepository extends JpaRepository<Tour, Long> {
 
     // Tìm kiếm theo managerId và companyName
     List<Tour> findByManagerIdAndCompanyName(Long managerId, String companyName);
+
+    Page<Tour> findAllByStatusInAndEndDateAfter(
+        List<Tour.Status> statuses,
+        LocalDate endDate,
+        Pageable pageable
+    );
 }

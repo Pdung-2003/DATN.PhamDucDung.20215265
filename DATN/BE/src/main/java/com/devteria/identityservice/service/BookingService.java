@@ -37,6 +37,7 @@ public class BookingService {
     private final UserRepository userRepository;
     private final TourService tourService;
     private final EmailService emailService;
+    private final NotificationService notificationService;
 
     @Transactional(rollbackFor = Exception.class)
     public BookingResponse createBooking(BookingRequest request) {
@@ -64,6 +65,7 @@ public class BookingService {
         booking.setPriceBooking(tour.getPrice().multiply(BigDecimal.valueOf(request.getNumberOfPeople())));
         booking = bookingRepository.save(booking);
         emailService.sendEmailConfirmHoldTicket(customer, tour, booking);
+        notificationService.notifyManagerTourBooked(tour, customer);
         return bookingMapper.toResponse(booking);
     }
 
@@ -113,32 +115,43 @@ public class BookingService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public BookingResponse changeStatusBooking(Integer bookingId, Booking.Status newStatus, Authentication authentication) {
-        Booking booking = getBooking(bookingId);
+public BookingResponse changeStatusBooking(Integer bookingId, Booking.Status newStatus, Authentication authentication) {
+    Booking booking = getBooking(bookingId);
 
+    String username = authentication.getName();
+    User currentUser = getUser(username);
+
+    boolean isOwner = booking.getCustomer().getId().equals(currentUser.getId());
+    boolean isCancelByOwner = newStatus == Booking.Status.CANCELLED
+        && isOwner
+        && (booking.getStatus() == Booking.Status.PENDING || booking.getStatus() == Booking.Status.CONFIRMED);
+
+    if (!isCancelByOwner) {
         //kiểm tra chỉ có admin hoặc tour manager quản lý tour đó mới được chỉnh sửa
         Long managerId = booking.getTour().getManager().getId();
         assertCanModifyBooking(authentication, managerId);
-        booking.setStatus(newStatus);
-        Booking savedBooking = bookingRepository.save(booking);
-
-        if (newStatus == Booking.Status.PAID) {
-            emailService.sendEmailConfirmPaidTour(
-                    savedBooking.getCustomer(),
-                    savedBooking.getTour(),
-                    savedBooking
-            );
-        } else if (newStatus == Booking.Status.CONFIRMED) {
-            emailService.sendEmailConfirmBooking(
-                    savedBooking.getCustomer(),
-                    savedBooking.getTour(),
-                    savedBooking
-            );
-        }
-
-        return bookingMapper.toResponse(savedBooking);
     }
 
+    booking.setStatus(newStatus);
+    Booking savedBooking = bookingRepository.save(booking);
+
+    if (newStatus == Booking.Status.PAID) {
+        emailService.sendEmailConfirmPaidTour(
+                savedBooking.getCustomer(),
+                savedBooking.getTour(),
+                savedBooking
+        );
+    } else if (newStatus == Booking.Status.CONFIRMED) {
+        emailService.sendEmailConfirmBooking(
+                savedBooking.getCustomer(),
+                savedBooking.getTour(),
+                savedBooking
+        );
+        notificationService.notifyCustomerBookingConfirmed(savedBooking);
+    }
+
+    return bookingMapper.toResponse(savedBooking);
+}
     @Transactional(rollbackFor = Exception.class)
     public BookingResponse changeStatusBooking(Booking booking, Booking.Status newStatus) {
         booking.setStatus(newStatus);

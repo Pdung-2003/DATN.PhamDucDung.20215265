@@ -12,7 +12,7 @@ public class TourResponse {
     private String tourName;
     private String tourBanner;
     private String description;
-    private String duration; // Ví dụ: 3N2Đ
+    private String duration;
     private String location;
     private String destination;
     private BigDecimal price;
@@ -23,4 +23,5 @@ public class TourResponse {
     private LocalDate startDate;
     private LocalDate endDate;
     private ManagerDataResponse manager;
+    private String status;
 }

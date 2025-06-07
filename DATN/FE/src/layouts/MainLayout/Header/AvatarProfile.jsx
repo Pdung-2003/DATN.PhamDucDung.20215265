@@ -39,17 +39,15 @@ const AvatarProfile = () => {
   }, [isDropdownOpen]);
 
   return (
-    <div className="aspect-square h-full p-2 relative" ref={dropdownRef}>
-      <img
-        src={IMAGE_CONSTANT.AVATAR_DEFAULT}
-        alt="avatar"
-        className="rounded-full border border-gray-300"
+    <div className="aspect-square h-full p-2 relative min-w-[40px] flex items-center justify-center" ref={dropdownRef}>
+      <User
+        className="w-8 h-8 rounded-full border border-gray-300 cursor-pointer text-gray-700 bg-white"
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
       />
       {isDropdownOpen && (
-        <div className="absolute right-0 mt-2 bg-white shadow-md rounded-lg w-48 z-50 border border-gray-300">
+        <div className="absolute right-0 top-full mt-2 bg-white shadow-md rounded-lg min-w-[180px] w-48 z-50 border border-gray-300">
           <ul className="space-y-2 p-2 text-sm text-gray-700">
-            {!isAdmin && !isManager && (
+            {(!isAdmin) && (
               <li>
                 <Link to={`/profile`} className="w-full text-left hover:bg-gray-100 px-2 py-1 flex">
                   <User className="mr-2" />

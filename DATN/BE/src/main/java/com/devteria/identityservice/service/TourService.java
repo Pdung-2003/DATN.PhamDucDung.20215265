@@ -6,12 +6,12 @@ import com.devteria.identityservice.dto.request.TourRequest;
 import com.devteria.identityservice.dto.response.TourResponse;
 import com.devteria.identityservice.entity.Tour;
 import com.devteria.identityservice.entity.User;
-import com.devteria.identityservice.exception.AppException;
-import com.devteria.identityservice.exception.BadRequestException;
-import com.devteria.identityservice.exception.ErrorCode;
-import com.devteria.identityservice.exception.ForbiddenException;
+import com.devteria.identityservice.entity.Notification;
+import com.devteria.identityservice.exception.*;
 import com.devteria.identityservice.mapper.TourMapper;
 import com.devteria.identityservice.repository.TourRepository;
+import com.devteria.identityservice.repository.NotificationRepository;
+import com.devteria.identityservice.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +23,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class TourService {
@@ -31,16 +36,25 @@ public class TourService {
     private final TourMapper tourMapper;
     private final UserService userService;
     private final CloudinaryService cloudinaryService;
+    private final NotificationRepository notificationRepository;
+    private final NotificationService notificationService;
 
     // Tạo mới tour
     @Transactional(rollbackFor = Exception.class)
-    public TourResponse createTour(TourRequest request, MultipartFile file) {
+    public TourResponse createTour(TourRequest request, MultipartFile file, Authentication authentication) {
         Tour tour = tourMapper.toEntity(request);
         User manager = userService.getUser(request.getManagerId());
         tour.setManager(manager);
-        tour.setStatus(Tour.Status.ACTIVE);
         tour.setAvailableTicket(request.getMaxCapacity());
         tour.setCurrentBooked(0);
+
+        User currentUser = userService.getUser(authentication.getName());
+        boolean isAdmin = currentUser.getRoles().stream().anyMatch(r -> r.getName().equals("ADMIN"));
+        if (isAdmin) {
+            tour.setStatus(request.getStatus() != null ? request.getStatus() : Tour.Status.APPROVED);
+        } else {
+            tour.setStatus(Tour.Status.PENDING);
+        }
 
         String fileName = file.getOriginalFilename();
         if (fileName != null && fileName.contains(".")) {
@@ -53,8 +67,17 @@ public class TourService {
     }
 
     public Tour getTour(Long tourId) {
-        return tourRepository.findById(tourId)
+        Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_EXISTED));
+
+        // Nếu tour đã hết hạn, cập nhật trạng thái sang INACTIVE
+        if (tour.getEndDate() != null && tour.getEndDate().isBefore(LocalDate.now())) {
+            if (tour.getStatus() == Tour.Status.APPROVED) {
+                tour.setStatus(Tour.Status.INACTIVE); // Chuyển sang INACTIVE khi tour hết hạn
+                tourRepository.save(tour);
+            }
+        }
+        return tour;
     }
 
     @Transactional(readOnly = true)
@@ -78,7 +101,6 @@ public class TourService {
         return tourMapper.toResponse(tourRepository.save(existingTour));
     }
 
-    // Cập nhật tour
     public Tour updateTourData(Tour existingTour, TourRequest tourRequest) {
 
         existingTour = tourMapper.updateTour(tourRequest, existingTour);
@@ -104,29 +126,71 @@ public class TourService {
         return existingTour;
     }
 
-    public Page<TourResponse> searchTour(TourFilterRequest request) {
-        if (request == null) {
-            request = new TourFilterRequest();
+    @Transactional(rollbackFor = Exception.class)
+    public TourResponse updateTourStatus(Long id, Tour.Status status, Authentication authentication) {
+        // Kiểm tra quyền của Admin (chỉ Admin mới có quyền reject tour)
+        User currentUser = userService.getUser(authentication.getName());
+        boolean isAdmin = currentUser.getRoles().stream().anyMatch(r -> r.getName().equals("ADMIN"));
+
+        // Chỉ admin mới có quyền reject tour
+        if (status == Tour.Status.REJECTED && !isAdmin) {
+            throw new RuntimeException("Only admin can reject tour");
         }
-        Sort sort = Sort.unsorted();
-        if (request.getSortBy() != null && !request.getSortBy().isEmpty()) {
-            sort = sort.and(Sort.by(request.getSortDirection().equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, request.getSortBy()));
+
+        Tour tour = tourRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Tour not found"));
+
+        // Cập nhật trạng thái tour
+        tour.setStatus(status);
+        tour = tourRepository.save(tour);
+
+        // Nếu duyệt tour (PENDING -> APPROVED), tạo notification cho manager
+        if (status == Tour.Status.APPROVED) {
+            notificationService.notifyManagerTourApproved(tour);
         }
 
-        Pageable pageable = PageRequest.of(request.getPageNumber() - 1, request.getPageSize(), sort);
-        Page<Tour> tours = tourRepository.searchTour(
-                request.getTourName(),
-                request.getLocation(), request.getDestination(),
-                request.getStartDateFrom(), request.getStartDateTo(),
-                request.getMinPrice(), request.getMaxPrice(),
-                request.getStatus(),
-                request.getManagerId(),
-                request.getCompany(),
-                pageable);
-
-
-        return tours.map(tourMapper::toResponse);
+        return tourMapper.toResponse(tour);
     }
+
+    @Transactional(readOnly = true)
+    public Page<TourResponse> searchTour(TourFilterRequest filterRequest, Authentication authentication) {
+    User currentUser = null;
+    boolean isAdmin = false;
+    boolean isManager = false;
+    
+    if (authentication != null) {
+        currentUser = userService.getUser(authentication.getName());
+        isAdmin = currentUser.getRoles().stream().anyMatch(r -> r.getName().equals("ADMIN"));
+        isManager = currentUser.getRoles().stream().anyMatch(r -> r.getName().equals("TOUR_MANAGER"));
+    }
+
+    // Set statuses dựa vào role
+    if (!isAdmin && !isManager) {
+        // User thường chỉ thấy tour APPROVED
+        filterRequest.setStatuses(List.of(Tour.Status.APPROVED));
+        filterRequest.setEndDateFrom(LocalDate.now().minusMonths(2));
+    } else if (isManager) {
+        // Tour manager thấy tour của mình với các status PENDING, APPROVED, REJECTED
+        filterRequest.setStatuses(List.of(Tour.Status.PENDING, Tour.Status.APPROVED, Tour.Status.REJECTED));
+        // Thêm filter theo managerId
+        filterRequest.setManagerId(currentUser.getId());
+    }
+    // Admin có thể thấy tất cả status
+    Pageable pageable = PageRequest.of(filterRequest.getPageNumber() - 1, filterRequest.getPageSize());
+    Page<Tour> tours = tourRepository.searchTour(
+            filterRequest.getTourName(),
+            filterRequest.getLocation(), 
+            filterRequest.getDestination(),
+            filterRequest.getStartDateFrom(), 
+            filterRequest.getStartDateTo(),
+            filterRequest.getMinPrice(), 
+            filterRequest.getMaxPrice(),
+            filterRequest.getStatuses(),
+            filterRequest.getManagerId(),
+            filterRequest.getCompany(),
+            pageable);
+
+    return tours.map(tourMapper::toResponse);
+}
 
     // Xóa tour
     public void deleteTour(Long tourId) {
@@ -138,6 +202,12 @@ public class TourService {
     }
 
     public void holdTicketForTour(Tour tour, Integer numberOfTicket) {
+        if (tour.getStatus() != Tour.Status.APPROVED) {
+            throw new BadRequestException("Tour chưa được duyệt hoặc không còn hoạt động");
+        }
+        if (tour.getEndDate() != null && tour.getEndDate().isBefore(LocalDate.now())) {
+            throw new BadRequestException("Tour đã kết thúc, không thể đặt");
+        }
         int availableTicket = tour.getAvailableTicket();
         if (availableTicket >= numberOfTicket) {
             tour.setAvailableTicket(availableTicket - numberOfTicket);

@@ -15,16 +15,16 @@ const SearchDebounce = ({ valueInput, changeValueInput, placeholder, className, 
 
   return (
     <div
-      className={`flex flex-row items-center justify-center border border-gray-300 h-[30px] p-2 gap-1 ${className}`}
+      className={`flex flex-row items-center justify-center border border-gray-300 h-[40px] p-2 gap-1 rounded-lg ${className}`}
     >
       <input
         type="text"
         value={value}
         onChange={handleChangeInput}
         placeholder={placeholder || 'Tìm kiếm ...'}
-        className="focus:outline-none focus-visible:ring-0 border-0 shadow-none h-auto w-full"
+        className="focus:outline-none focus-visible:ring-0 border-0 shadow-none h-auto w-full font-semibold text-base"
       />
-      <SearchIcon className="w-5 h-4 cursor-pointer" onClick={onClickIcon} />
+      <SearchIcon className="w-6 h-6 cursor-pointer" onClick={onClickIcon} />
     </div>
   );
 };

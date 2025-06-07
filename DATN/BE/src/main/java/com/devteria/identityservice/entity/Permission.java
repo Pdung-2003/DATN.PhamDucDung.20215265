@@ -3,6 +3,7 @@ package com.devteria.identityservice.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.Set;
 
@@ -22,6 +23,7 @@ public class Permission {
 
     // Liên kết tới UserRolePermission để lấy tất cả người dùng và vai trò có quyền này
     @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<UserRolePermission> userRolePermissions;
 
 }

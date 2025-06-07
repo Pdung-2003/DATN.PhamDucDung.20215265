@@ -8,7 +8,9 @@ const initialState = {
   totalElements: 0,
   totalPages: 0,
   tour: null,
-  filter: null,
+  filter: {
+    statuses: [],
+  },
   loading: false,
   error: null,
 };

@@ -12,7 +12,10 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserRolePermissionResponse {
-    private User user;  // Thông tin người dùng
-    private Role role;  // Thông tin vai trò
-    private Permission permission;  // Thông tin quyền
+    private Long userId;
+    private String username;
+    private Long roleId;
+    private String roleName;
+    private Long permissionId;
+    private String permissionName;
 }

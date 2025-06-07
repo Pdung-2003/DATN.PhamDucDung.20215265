@@ -8,9 +8,11 @@ import { useTourActions } from '@/hooks/useTourActions';
 import { formatCurrency } from '@/utils/format';
 import { Calendar, Map } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getFeedbacksByTourId } from '@/services/tour.service';
 import { IMAGE_CONSTANT } from '@/constants/image.constant';
+import { useBookingState } from '@/contexts/BookingContext';
+import { useBookingActions } from '@/hooks/useBookingActions';
 import QuestionSection from '@/components/tour/QuestionSection';
 
 const TourDetails = () => {
@@ -21,9 +23,34 @@ const TourDetails = () => {
   const { itineraries } = useItineraryState();
   const { user } = useAuthState();
   const [isBookingTourModalOpen, setIsBookingTourModalOpen] = useState(false);
+  const [isBooked, setIsBooked] = useState(false);
   const [feedbacks, setFeedbacks] = useState([]);
   const [activeTab, setActiveTab] = useState('feedback');
-
+  const navigate = useNavigate();
+  const { booking } = useBookingState();
+  const { fetchMyBookings } = useBookingActions();
+  const hasBooked = booking.some(b => String(b.tourId) === String(id));
+  const isCustomer = user?.roles?.some((role) => role.name === 'USER' || role.name === 'CUSTOMER');
+  const canBookTour = () => {
+    if (!tour) return false;
+    return tour.status === 'APPROVED' && new Date(tour.endDate) > new Date();
+  };
+  const getStatusMessage = () => {
+    if (!tour) return null;
+    
+    switch (tour.status) {
+      case 'PENDING':
+        return 'Tour đang chờ duyệt';
+      case 'REJECTED':
+        return 'Tour đã bị từ chối';
+      case 'INACTIVE':
+        return 'Tour đã hết hạn';
+      case 'CANCELLED':
+        return 'Tour đã bị hủy';
+      default:
+        return null;
+    }
+  };
   useEffect(() => {
     if (id) {
       fetchTourById(id);
@@ -31,6 +58,11 @@ const TourDetails = () => {
       getFeedbacksByTourId(id).then((res) => setFeedbacks(res.result || []));
     }
   }, [id]);
+  useEffect(() => {
+    if (user) {
+      fetchMyBookings();
+    }
+  }, [user]);
 
   return (
     <div className="container max-w-[1160px] mx-auto mt-10 flex flex-col gap-5 w-full px-4">
@@ -81,20 +113,44 @@ const TourDetails = () => {
             </div>
           </div>
 
-          <button
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 rounded-lg"
-            onClick={() => {
-              setIsBookingTourModalOpen(true);
-            }}
-          >
-            {user ? 'Đặt Tour' : 'Gửi yêu cầu'}
-          </button>
+          {/* Nút đặt tour và đơn hàng */}
+          {canBookTour() ? (
+            <>
+              <button
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 rounded-lg"
+                onClick={() => setIsBookingTourModalOpen(true)}
+              >
+                {user ? 'Đặt Tour' : 'Gửi yêu cầu'}
+              </button>
+              {hasBooked && isCustomer && (
+                <button
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg mt-2"
+                  onClick={() => navigate('/orders')}
+                >
+                  Đơn hàng của bạn
+                </button>
+              )}
+            </>
+          ) : (
+            <button
+              className="w-full bg-gray-400 text-white font-semibold py-2 rounded-lg cursor-not-allowed"
+              disabled
+            >
+              Không thể đặt tour
+            </button>
+          )}
+          {getStatusMessage() && (
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
+            {getStatusMessage()}
+          </div>
+        )}
         </div>
       </div>
       <BookingTourModal
         open={isBookingTourModalOpen}
         onClose={() => setIsBookingTourModalOpen(false)}
         tourId={id}
+        onBookedSuccess={() => setIsBooked(true)}
       />
       {tour?.description && (
         <div className="w-full">

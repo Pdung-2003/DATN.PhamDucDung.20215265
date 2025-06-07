@@ -40,29 +40,9 @@
         <p><strong>Số lượng khách:</strong> <span th:text="${numAdults}"></span> Người lớn</p>
 
         <table>
-            <thead>
-            <tr>
-                <th>Hạng tour</th>
-                <th>1 Người lớn</th>
-                <th>Phụ thu phòng đơn</th>
-                <th>Tổng tiền</th>
-            </tr>
-            </thead>
             <tbody>
-            <tr>
-                <td th:text="${tourType}">Tour hằng ngày</td>
-                <td th:text="${adultPrice}">730.000đ</td>
-                <td>0 đ</td>
-                <td th:text="${subtotal}">730.000đ</td>
-            </tr>
-            <tr>
-                <td colspan="3">Sử dụng điểm:</td>
-                <td th:text="${discount}">-50.000đ</td>
-            </tr>
-            <tr>
                 <td colspan="3" class="total">Tổng tiền:</td>
                 <td class="total" th:text="${total}">680.000đ</td>
-            </tr>
             </tbody>
         </table>
     </div>

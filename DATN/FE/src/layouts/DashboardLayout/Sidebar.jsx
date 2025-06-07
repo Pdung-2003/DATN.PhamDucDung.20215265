@@ -2,6 +2,7 @@ import { useAuthState } from '@/contexts/AuthContext';
 import { MapIcon, Truck, UserIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import logo from '@/assets/images/Logo.png';
 
 const Sidebar = () => {
   const { user } = useAuthState();
@@ -13,18 +14,16 @@ const Sidebar = () => {
   }, [user?.roles]);
 
   return (
-    <div className="w-[250px] h-full flex flex-col items-center border-r border-gray-200 bg-[var(--primary)]">
-      <div className="py-4 px-5">
-        <img
-          src={'https://www.bestprice.vn/assets/img/bestpricetravel-logo-28122023.png'}
-          alt="logo"
-          className="w-full h-full"
-        />
+    <div className="w-[250px] h-full flex flex-col items-center border-r border-gray-200" style={{ background: '#e3f0ff' }}>
+      <div className="flex items-center justify-center py-6">
+        <Link to="/">
+          <img src={logo} alt="Logo" className="h-14 w-auto cursor-pointer" />
+        </Link>
       </div>
       <div className="flex flex-col w-full spacing-y-2 px-5">
         {sidebarItems.map((item) => (
           <Link to={item.path} key={item.path} className="w-full">
-            <button className="flex flex-row justify-start gap-2 w-full text-white p-2 hover:bg-[var(--primary-hover)] rounded-md">
+            <button className="flex flex-row justify-start gap-2 w-full text-[#1976d2] p-2 hover:bg-blue-100 rounded-md font-semibold">
               {item.icon}
               {item.label}
             </button>

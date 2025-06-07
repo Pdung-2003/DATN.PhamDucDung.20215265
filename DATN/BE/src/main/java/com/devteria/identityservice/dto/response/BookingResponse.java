@@ -23,4 +23,10 @@ public class BookingResponse implements Serializable {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private String customerName;
+    private String email;
+    private String phone;
+    private String location;
+    private LocalDate endDate;
 }
