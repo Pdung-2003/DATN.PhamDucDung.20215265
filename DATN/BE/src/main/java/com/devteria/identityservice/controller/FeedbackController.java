@@ -117,4 +117,14 @@ public class FeedbackController {
         feedbackService.deleteFeedback(feedbackId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/exists")
+    public ResponseEntity<ApiResponse<Boolean>> existsFeedbackForBooking(@RequestParam Integer bookingId) {
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        // Lấy userId từ context hoặc service
+        // Ở đây giả sử có thể lấy userId từ username (cần bổ sung nếu chưa có)
+        Long userId = feedbackService.getUserIdByUsername(currentUsername);
+        boolean exists = feedbackService.existsByCustomerIdAndBookingId(userId, bookingId);
+        return ResponseEntity.ok(ApiResponse.<Boolean>builder().result(exists).build());
+    }
 }

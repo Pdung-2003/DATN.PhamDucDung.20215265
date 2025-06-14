@@ -6,6 +6,7 @@ import { bookingService } from '@/services';
 import { toast } from 'react-toastify';
 import UploadMultipleImagesControl from './UploadMultipleImagesControl';
 import { Controller } from 'react-hook-form';
+import { useState } from 'react';
 
 const StarRatingInput = ({ value, onChange }) => (
   <div className="flex items-center gap-1">
@@ -42,6 +43,7 @@ const ReviewTourModal = ({ open, onClose, bookingId }) => {
       rating: 5,
     },
   });
+  const [mainImage, setMainImage] = useState(null);
 
   const onSubmit = async (data) => {
     if (!data.review) {
@@ -53,6 +55,10 @@ const ReviewTourModal = ({ open, onClose, bookingId }) => {
       return;
     }
     const formData = new FormData();
+    let image = null;
+    if (data.images && data.images.length > 0) {
+      image = data.images[0].name;
+    }
     formData.append(
       'feedback',
       new Blob(
@@ -61,6 +67,7 @@ const ReviewTourModal = ({ open, onClose, bookingId }) => {
             bookingId: Number(bookingId),
             rating: data.rating,
             comment: data.review,
+            image: image,
           }),
         ],
         { type: 'application/json' }

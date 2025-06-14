@@ -5,9 +5,9 @@ import { bookingService } from '@/services';
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import ReviewTourModal from './ReviewTourModal';
 import { Link } from 'react-router-dom';
 import BookingDetailModal from './BookingDetailModal';
+import mainRequest from '@/api/mainRequest';
 
 const STATUS_LABELS = {
   [BOOKING_STATUS.PENDING]: 'Đang chờ duyệt',
@@ -20,6 +20,8 @@ const OrderTour = () => {
   const dispatch = useBookingDispatch();
   const { booking } = useBookingState();
   const { fetchMyBookings } = useBookingActions();
+  const [activeTab, setActiveTab] = useState('upcoming');
+  const today = new Date();
 
   useEffect(() => {
     fetchMyBookings();
@@ -28,12 +30,47 @@ const OrderTour = () => {
     };
   }, []);
 
+  // Lọc booking cho từng tab
+  const upcomingBookings = booking.filter(b => {
+    const tourDate = b.tourDate ? new Date(b.tourDate) : null;
+    return b.status !== BOOKING_STATUS.CANCELLED && tourDate && tourDate >= today;
+  });
+  const historyBookings = booking.filter(b => {
+    const tourDate = b.tourDate ? new Date(b.tourDate) : null;
+    return b.status === BOOKING_STATUS.CANCELLED || (tourDate && tourDate < today);
+  });
+
   return (
     <div className="flex flex-col space-y-3">
+      {/* Tabs */}
+      <div className="flex gap-6 border-b mb-2">
+        <button
+          className={`pb-2 px-2 font-semibold text-base ${activeTab === 'upcoming' ? 'text-cyan-400 border-b-4 border-cyan-200' : 'text-black'}`}
+          onClick={() => setActiveTab('upcoming')}
+        >
+          Chuyến đi sắp tới
+        </button>
+        <button
+          className={`pb-2 px-2 font-semibold text-base ${activeTab === 'history' ? 'text-black border-b-4 border-gray-200' : 'text-black'}`}
+          onClick={() => setActiveTab('history')}
+        >
+          Lịch sử chuyến đi
+        </button>
+      </div>
+      {/* Danh sách booking theo tab */}
       <div className="flex flex-col space-y-3 overflow-y-auto max-h-[500px]">
-        {booking.map((booking) => (
+        {activeTab === 'upcoming' && upcomingBookings.map((booking) => (
           <OrderTourItem key={booking.id} booking={booking} />
         ))}
+        {activeTab === 'history' && historyBookings.map((booking) => (
+          <OrderTourItem key={booking.id} booking={booking} />
+        ))}
+        {activeTab === 'upcoming' && upcomingBookings.length === 0 && (
+          <div className="text-gray-500 text-center py-8">Không có chuyến đi sắp tới.</div>
+        )}
+        {activeTab === 'history' && historyBookings.length === 0 && (
+          <div className="text-gray-500 text-center py-8">Không có lịch sử chuyến đi.</div>
+        )}
       </div>
     </div>
   );
@@ -42,11 +79,21 @@ const OrderTour = () => {
 const OrderTourItem = ({ booking }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
+  const [hasFeedback, setHasFeedback] = useState(false);
   const { changeBookingStatus } = useBookingActions();
   const isCanFeedback =
     booking?.status === BOOKING_STATUS.PAID &&
     booking?.tourDate &&
     new Date(booking?.tourDate) < new Date();
+
+  useEffect(() => {
+    if (isCanFeedback) {
+      // Gọi API kiểm tra đã feedback chưa
+      mainRequest.get(`/api/feedbacks/exists?bookingId=${booking.bookingId}`)
+        .then(res => setHasFeedback(res?.data?.result))
+        .catch(() => setHasFeedback(false));
+    }
+  }, [booking.bookingId, isCanFeedback]);
 
   const createPayment = async (bookingId) => {
     try {
@@ -72,7 +119,7 @@ const OrderTourItem = ({ booking }) => {
           {booking?.tourName}
         </a>
         <p className="text-md font-bold mt-1 mb-2">Trạng thái: {STATUS_LABELS[booking?.status]}</p>
-        <p className="text-sm text-gray-500">Mã đơn: {booking?.bookingCode || booking?.id}</p>
+        <p className="text-sm text-gray-500">Mã đơn: {booking?  .bookingCode || booking?.id}</p>
         <p className="text-sm text-gray-500">Số người: {booking?.numberOfPeople}</p>
         <p className="text-sm text-gray-500">Giá: {booking?.priceBooking?.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</p>
         <p className="text-sm text-gray-500">Ngày đi: {booking?.tourDate ? new Date(booking.tourDate).toLocaleDateString() : 'N/A'}</p>
@@ -86,25 +133,12 @@ const OrderTourItem = ({ booking }) => {
             Thanh toán
           </button>
         )}
-        {isCanFeedback && (
-          <button
-            className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 mb-1 w-full"
-            onClick={() => setIsOpen(true)}
-          >
-            Đánh giá
-          </button>
-        )}
         <button
           className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 w-full"
           onClick={() => setShowDetail(true)}
         >
           Xem chi tiết
-        </button>
-        <ReviewTourModal
-          open={isOpen}
-          onClose={() => setIsOpen(false)}
-          bookingId={booking?.bookingId}
-        />
+          </button>
         <BookingDetailModal
           open={showDetail}
           onClose={() => setShowDetail(false)}

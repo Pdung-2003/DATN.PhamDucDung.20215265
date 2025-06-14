@@ -1,12 +1,14 @@
 import { TITLE_OF_ROUTE } from '@/constants/app.constant';
 import { IMAGE_CONSTANT } from '@/constants/image.constant';
 import { useAuthActions } from '@/hooks/useAuthActions';
+import { useAuthState } from '@/contexts/AuthContext';
 import { LogOut } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const TopBar = () => {
   const { logout } = useAuthActions();
+  const { user } = useAuthState();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -15,6 +17,12 @@ const TopBar = () => {
   const title = useMemo(() => {
     return TITLE_OF_ROUTE[pathname] || '';
   }, [pathname]);
+
+  const isAdmin = useMemo(() => {
+    return user?.roles?.some((role) => role.name === 'ADMIN');
+  }, [user]);
+
+  const avatarSrc = isAdmin ? IMAGE_CONSTANT.AVATAR_ADMIN : IMAGE_CONSTANT.AVATAR_DEFAULT;
 
   const handleClickOutside = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -39,9 +47,9 @@ const TopBar = () => {
       <p className="text-lg font-bold">{title}</p>
       <div className="aspect-square h-full p-2 relative" ref={dropdownRef}>
         <img
-          src={IMAGE_CONSTANT.AVATAR_DEFAULT}
+          src={avatarSrc}
           alt="avatar"
-          className="rounded-full border border-gray-300"
+          className="w-10 h-10 rounded-full border border-gray-300 object-cover cursor-pointer bg-white"
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
         />
         {isDropdownOpen && (

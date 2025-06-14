@@ -35,6 +35,9 @@ public class Feedback {
     @Column(length = 1000)
     private String comment;  // Bình luận của khách hàng
 
+    @Column(length = 500)
+    private String image;  // Ảnh chính của feedback (nếu có)
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;  // Thời gian tạo

@@ -14,6 +14,8 @@ import { IMAGE_CONSTANT } from '@/constants/image.constant';
 import { useBookingState } from '@/contexts/BookingContext';
 import { useBookingActions } from '@/hooks/useBookingActions';
 import QuestionSection from '@/components/tour/QuestionSection';
+import ReviewTourModal from '@/components/tour/ReviewTourModal';
+import mainRequest from '@/api/mainRequest';
 
 const TourDetails = () => {
   const { id } = useParams();
@@ -51,6 +53,9 @@ const TourDetails = () => {
         return null;
     }
   };
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const eligibleBooking = booking.find(b => String(b.tourId) === String(id) && b.status === 'PAID' && new Date(b.tourDate) <= new Date());
+  const [hasFeedback, setHasFeedback] = useState(false);
   useEffect(() => {
     if (id) {
       fetchTourById(id);
@@ -63,6 +68,13 @@ const TourDetails = () => {
       fetchMyBookings();
     }
   }, [user]);
+  useEffect(() => {
+    if (eligibleBooking) {
+      mainRequest.get(`/api/feedbacks/exists?bookingId=${eligibleBooking.bookingId}`)
+        .then(res => setHasFeedback(res?.data?.result))
+        .catch(() => setHasFeedback(false));
+    }
+  }, [eligibleBooking?.bookingId]);
 
   return (
     <div className="container max-w-[1160px] mx-auto mt-10 flex flex-col gap-5 w-full px-4">
@@ -183,6 +195,15 @@ const TourDetails = () => {
         {activeTab === 'feedback' && (
           <div className="bg-white rounded-xl p-5 shadow border border-gray-100">
             <h2 className="text-2xl font-bold mb-4">Đánh giá từ khách hàng</h2>
+            {eligibleBooking && !hasFeedback && (
+              <button
+                className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                onClick={() => setIsReviewModalOpen(true)}
+              >
+                Đánh giá tour
+              </button>
+            )}
+            <ReviewTourModal open={isReviewModalOpen} onClose={() => setIsReviewModalOpen(false)} bookingId={eligibleBooking?.bookingId?.toString() || ''} />
             {feedbacks.length === 0 && <div>Chưa có đánh giá nào cho tour này.</div>}
             <div className="flex flex-col gap-4">
               {feedbacks.map((fb) => (

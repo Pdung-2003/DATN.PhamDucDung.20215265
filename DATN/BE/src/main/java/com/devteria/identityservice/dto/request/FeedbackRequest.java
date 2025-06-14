@@ -23,4 +23,6 @@ public class FeedbackRequest implements Serializable {
     @NotNull
     @NotBlank
     private String comment;
+
+    private String image; // Ảnh chính của feedback (nếu có)
 }

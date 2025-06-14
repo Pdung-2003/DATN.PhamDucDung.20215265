@@ -20,6 +20,8 @@ const AvatarProfile = () => {
     return user?.roles.some((role) => role.name === 'ADMIN');
   }, [user]);
 
+  const avatarSrc = isAdmin ? IMAGE_CONSTANT.AVATAR_ADMIN : IMAGE_CONSTANT.AVATAR_DEFAULT;
+
   const handleClickOutside = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
       setIsDropdownOpen(false);
@@ -40,8 +42,10 @@ const AvatarProfile = () => {
 
   return (
     <div className="aspect-square h-full p-2 relative min-w-[40px] flex items-center justify-center" ref={dropdownRef}>
-      <User
-        className="w-8 h-8 rounded-full border border-gray-300 cursor-pointer text-gray-700 bg-white"
+      <img
+        src={avatarSrc}
+        alt="avatar"
+        className="w-10 h-10 rounded-full border border-gray-300 object-cover cursor-pointer bg-white"
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
       />
       {isDropdownOpen && (
@@ -83,6 +87,7 @@ const AvatarProfile = () => {
                 onClick={() => {
                   logout();
                   navigate('/');
+                  window.location.reload();
                 }}
               >
                 <LogOut className="inline mr-2" />

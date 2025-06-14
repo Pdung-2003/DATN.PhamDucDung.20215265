@@ -2,13 +2,16 @@ import { BOOKING_STATUS } from '@/constants/app.constant';
 import { useAuthState } from '@/contexts/AuthContext';
 import { useBookingDispatch, useBookingState } from '@/contexts/BookingContext';
 import { useBookingActions } from '@/hooks/useBookingActions';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import AppModal from '@/components/common/AppModal';
 
 const RequestBooking = () => {
   const dispatch = useBookingDispatch();
   const { user } = useAuthState();
   const { fetchBookingRequests, changeBookingStatus } = useBookingActions();
   const { booking, pagination, filter, totalElements, totalPages } = useBookingState();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState('');
 
   const isTourManager = useMemo(() => {
     return user?.roles?.some((role) => role.name === 'TOUR_MANAGER');
@@ -87,6 +90,7 @@ const RequestBooking = () => {
                 <th className="border border-gray-300 p-2">Ngày đi</th>
                 <th className="border border-gray-300 p-2">Số lượng người</th>
                 <th className="border border-gray-300 p-2">Giá</th>
+                {isTourManager && <th className="border border-gray-300 p-2">Người đặt</th>}
                 <th className="border border-gray-300 p-2">Thao tác</th>
               </tr>
             </thead>
@@ -107,6 +111,9 @@ const RequestBooking = () => {
                       currency: 'VND',
                     })}
                   </td>
+                  {isTourManager && (
+                    <td className="border border-gray-300 p-2 text-center">{booking.username || 'N/A'}</td>
+                  )}
                   <td className="border border-gray-300 p-2 text-center">
                     <div className="relative dropdown-container flex items-center justify-center gap-2">
                       {booking.status === BOOKING_STATUS.PENDING ? (
@@ -144,6 +151,17 @@ const RequestBooking = () => {
                       ) : (
                         <button className="bg-gray-600 px-4 py-1 rounded-md border border-gray-300 text-white hover:bg-gray-700 transition">
                           Đã hủy
+                        </button>
+                      )}
+                      {isTourManager && (
+                        <button
+                          className="bg-[#4267B2] px-4 py-1 rounded-md border border-[#4267B2] text-white hover:bg-[#365899] transition"
+                          onClick={() => {
+                            setModalContent(booking.requireFromCustomer || 'Không có yêu cầu đặc biệt');
+                            setModalOpen(true);
+                          }}
+                        >
+                          Xem yêu cầu
                         </button>
                       )}
                     </div>
@@ -190,6 +208,14 @@ const RequestBooking = () => {
           </div>
         </div>
       </div>
+      <AppModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Yêu cầu từ khách hàng"
+        content={<div className="text-base text-gray-800">{modalContent}</div>}
+        paperProps={{ className: 'border-2 border-[#4267B2] bg-white max-w-[400px] w-full rounded-lg p-0' }}
+        titleProps={{ className: 'text-[#4267B2]' }}
+      />
     </div>
   );
 };

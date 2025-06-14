@@ -15,5 +15,6 @@ public interface FeedbackMapper {
     @Mapping(target = "tourId", source = "tour.tourId")
     @Mapping(target = "userId", source = "customer.id")
     @Mapping(target = "userFullname", source = "customer.fullName")
+    @Mapping(target = "image", source = "image")
     FeedbackResponse toResponse(Feedback feedback);
 }

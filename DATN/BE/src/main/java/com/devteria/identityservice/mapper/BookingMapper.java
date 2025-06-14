@@ -20,6 +20,7 @@ public interface BookingMapper {
     @Mapping(target = "tourName", source = "tour.tourName")
     @Mapping(target = "location", source = "tour.location")
     @Mapping(target = "endDate", source = "tour.endDate")
+    @Mapping(target = "username", source = "customer.username")
     BookingResponse toResponse(Booking booking);
 
     default Booking toEntityByUpdateRequest(BookingUpdateRequest request, Booking booking){

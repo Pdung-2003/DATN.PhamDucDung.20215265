@@ -29,4 +29,6 @@ public class BookingResponse implements Serializable {
     private String phone;
     private String location;
     private LocalDate endDate;
+
+    private String username;
 }

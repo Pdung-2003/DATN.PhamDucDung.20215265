@@ -21,6 +21,7 @@ public class FeedbackResponse implements Serializable {
     private Integer rating;
     private String comment;
     private List<ImagePathResponse> images;
+    private String image;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

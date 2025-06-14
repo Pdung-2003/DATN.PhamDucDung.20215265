@@ -12,6 +12,7 @@ import com.devteria.identityservice.mapper.FeedbackMapper;
 import com.devteria.identityservice.mapper.ImagePathMapper;
 import com.devteria.identityservice.repository.FeedbackRepository;
 import com.devteria.identityservice.repository.TourRepository;
+import com.devteria.identityservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -44,6 +45,7 @@ public class FeedbackService {
     private final ImagePathService imagePathService;
     private final ImagePathMapper imagePathMapper;
     private final TourRepository tourRepository;
+    private final UserRepository userRepository;
 
     @Transactional(rollbackFor = Exception.class)
     public FeedbackResponse createFeedback(FeedbackRequest request, String username, MultipartFile[] images) {
@@ -70,10 +72,14 @@ public class FeedbackService {
         feedback.setBooking(booking);
         feedback.setCustomer(user);
 
-        FeedbackResponse response = feedbackMapper.toResponse(feedbackRepository.save(feedback));
-        List<ImagePath> imagePaths = uploadImages(images, response.getFeedbackId());
+        Feedback savedFeedback = feedbackRepository.save(feedback);
+        List<ImagePath> imagePaths = uploadImages(images, savedFeedback.getFeedbackId());
+        if (!imagePaths.isEmpty()) {
+            savedFeedback.setImage(imagePaths.get(0).getUrl());
+            feedbackRepository.save(savedFeedback);
+        }
+        FeedbackResponse response = feedbackMapper.toResponse(savedFeedback);
         response.setImages(imagePaths.stream().map(imagePathMapper::toImagePathResponse).toList());
-
         return response;
     }
 
@@ -188,6 +194,15 @@ public class FeedbackService {
                 throw new ForbiddenException("You do not have permission");
             }
         }
+    }
+
+    public boolean existsByCustomerIdAndBookingId(Long userId, Integer bookingId) {
+        return feedbackRepository.existsByCustomerIdAndBookingId(userId, bookingId);
+    }
+
+    public Long getUserIdByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found")).getId();
     }
 
 }
